@@ -13,7 +13,7 @@ extern crate firebase_rs;
 use firebase_rs::*;
 ````
 
-#Creating a Firebase instance
+# Creating a Firebase instance
 
 ### Without Auth
 ````rust
