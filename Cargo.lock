@@ -53,17 +53,6 @@ name = "firebase-rs"
 version = "1.0.2"
 dependencies = [
  "curl",
- "firebase-rs 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "url",
-]
-
-[[package]]
-name = "firebase-rs"
-version = "1.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84e786e0ab6ccec73b87e120fd2fe35d1b23b59a90e25f525fa261a18590aa4d"
-dependencies = [
- "curl",
  "url",
 ]
 
