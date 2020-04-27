@@ -3,9 +3,9 @@
 Rust based firebase library.
 
 # Full Documentation
-[Documentation](https://docs.rs/firebase-rs/1.0.1/firebase_rs/)
+[Documentation](https://docs.rs/firebase-rs/1.0.3/firebase_rs/)
 
-[Firebase Struct](https://docs.rs/firebase-rs/1.0.1/firebase_rs/struct.Firebase.html)
+[Firebase Struct](https://docs.rs/firebase-rs/1.0.3/firebase_rs/struct.Firebase.html)
 
 # How to use
 
