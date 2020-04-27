@@ -39,7 +39,14 @@ let users = _firebase.at("users").unwrap();
 let res = users.set("{\"username\": \"test\"}").unwrap();
 ````
 
-### Pushing Data
+
+### Update Data
+````rust
+let users = _firebase.at("users/user1").unwrap();
+let res = users.update("{\"username\": \"new_username\"}").unwrap();
+````
+
+### Push Data
 ````rust
 let users = _firebase.at("users").unwrap();
 let res = users.push("{\"username\": \"test\"}").unwrap();
