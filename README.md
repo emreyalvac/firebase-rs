@@ -19,12 +19,12 @@ use firebase_rs::*;
 
 ### Without Auth
 ````rust
-let _firebase = Firebase::new("https://myfirebase.firebaseio.com");
+let _firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
 ````
 
 ### With Auth
 ````rust
-let _firebase = Firebase::auth("https://myfirebase.firebaseio.com", "AUTH_KEY");
+let _firebase = Firebase::auth("https://myfirebase.firebaseio.com", "AUTH_KEY").unwrap();
 ````
 
 ---

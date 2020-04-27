@@ -9,8 +9,10 @@ documentation = "https://docs.rs/firebase-rs/1.0.1/firebase_rs/"
 license = "MIT"
 authors = ["Emre YALVAÇ <emre.yalvac@outlook.com>"]
 exclude = ["examples/*", "tests/*"]
-keywords = ["firebase", "rest", "api"]
+keywords = ["firebase", "rest", "api", "web", "real time database"]
 
 [dependencies]
 url = "2.1.1"
 curl = "0.4.28"
+serde_json = "1.0.51"
+serde = { version = "1.0.6", features = ["derive"] }
