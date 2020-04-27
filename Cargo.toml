@@ -1,11 +1,11 @@
 [package]
 
 name = "firebase-rs"
-version = "1.0.1"
+version = "1.0.2"
 description = "Rust based Firebase library"
 readme = "README.md"
 repository = "https://github.com/emreyalvac/firebase-rs"
-documentation = "https://docs.rs/firebase-rs/1.0.1/firebase-rs/"
+documentation = "https://docs.rs/firebase-rs/1.0.1/firebase_rs/"
 license = "MIT"
 authors = ["Emre YALVAÇ <emre.yalvac@outlook.com>"]
 exclude = ["examples/*", "tests/*"]
@@ -14,3 +14,4 @@ keywords = ["firebase", "rest", "api"]
 [dependencies]
 url = "2.1.1"
 curl = "0.4.28"
+firebase-rs = "1.0.2"
