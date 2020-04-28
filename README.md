@@ -1,6 +1,8 @@
 # firebase-rs
 
 Rust based firebase library.
+---
+![firebase](https://seeklogo.com/images/F/firebase-logo-402F407EE0-seeklogo.com.png 'Firebase')
 
 # Full Documentation
 [Documentation](https://docs.rs/firebase-rs/1.0.3/firebase_rs/)
