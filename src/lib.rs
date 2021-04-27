@@ -9,12 +9,12 @@ extern crate url;
 
 use curl::easy::{Easy2, Handler, List, WriteError};
 use serde::de::DeserializeOwned;
+use serde::Serialize;
 use std::collections::HashMap;
+use std::fmt::{Debug, Display, Formatter};
 use std::sync::Arc;
 use std::thread::JoinHandle;
 use url::Url;
-use serde::Serialize;
-use std::fmt::Debug;
 
 // Collector
 pub struct Collector(Vec<u8>);
@@ -55,12 +55,36 @@ pub enum UrlParseError {
     Parser(url::ParseError),
 }
 
+impl Display for UrlParseError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            UrlParseError::NoPath => write!(f, "URL path is missing."),
+            UrlParseError::NotHttps => write!(f, "The URL protocol should be https."),
+            UrlParseError::Parser(e) => write!(f, "Error while parsing: {}", e),
+        }
+    }
+}
+
+impl std::error::Error for UrlParseError {}
+
 #[derive(Debug)]
 pub enum RequestError {
     NotJSON,
     NoUTF8(std::str::Utf8Error),
     NetworkError(curl::Error),
 }
+
+impl Display for RequestError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            RequestError::NotJSON => write!(f, "Invalid JSON"),
+            RequestError::NoUTF8(utf8_error) => write!(f, "Utf8 error: {}", utf8_error),
+            RequestError::NetworkError(curl_error) => write!(f, "Curl error: {}", curl_error),
+        }
+    }
+}
+
+impl std::error::Error for RequestError {}
 
 #[derive(Debug)]
 enum Method {
@@ -160,8 +184,8 @@ impl Firebase {
         data: Option<String>,
         callback: F,
     ) -> JoinHandle<()>
-        where
-            F: Fn(Result<Response, RequestError>) + Send + 'static,
+    where
+        F: Fn(Result<Response, RequestError>) + Send + 'static,
     {
         let url = url.clone();
         std::thread::spawn(move || {
@@ -249,20 +273,20 @@ impl Firebase {
     }
 
     /// Asynchronous method for set.
-   /// Takes a callback function and returns a handle.
-   /// # Examples
-   /// ```
-   ///  let _firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
-   ///  let mut users = _firebase.at("users").unwrap();
-   ///  users = users.at("user_1").unwrap();
-   ///  let job = users.set_async("{\"username\":\"new_username\"}", |res| {
-   ///      println!("{:?}", res);
-   ///  });
-   ///  job.join();
+    /// Takes a callback function and returns a handle.
+    /// # Examples
+    /// ```
+    ///  let _firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
+    ///  let mut users = _firebase.at("users").unwrap();
+    ///  users = users.at("user_1").unwrap();
+    ///  let job = users.set_async("{\"username\":\"new_username\"}", |res| {
+    ///      println!("{:?}", res);
+    ///  });
+    ///  job.join();
     pub fn set_async<S, F>(&self, data: S, callback: F) -> JoinHandle<()>
-        where
-            F: Fn(Result<Response, RequestError>) + Send + 'static,
-            S: Into<String>,
+    where
+        F: Fn(Result<Response, RequestError>) + Send + 'static,
+        S: Into<String>,
     {
         Firebase::request_url_async(&self.url, Method::PUT, Some(data.into()), callback)
     }
@@ -278,13 +302,17 @@ impl Firebase {
     /// let _firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
     /// let users = _firebase.at("users").unwrap();
     /// let res = users.set_generic::<User>(User {username: "value".to_string()}).unwrap();
-    pub fn set_generic<T>(&self, data: T) -> Result<ResponseGeneric<T>, RequestError> where T: DeserializeOwned + Serialize + Sized + Debug {
+    pub fn set_generic<T>(&self, data: T) -> Result<ResponseGeneric<T>, RequestError>
+    where
+        T: DeserializeOwned + Serialize + Sized + Debug,
+    {
         let _data = serde_json::to_string(&data).unwrap();
         match self.set(&_data) {
-            Ok(res) => {
-                Ok(ResponseGeneric { data: serde_json::from_str::<T>(&_data).unwrap(), code: 200 })
-            }
-            Err(e) => Err(e)
+            Ok(_) => Ok(ResponseGeneric {
+                data: serde_json::from_str::<T>(&_data).unwrap(),
+                code: 200,
+            }),
+            Err(e) => Err(e),
         }
     }
 
@@ -303,8 +331,8 @@ impl Firebase {
     /// // Use this type if you use key value struct (e.g: "user1": {"username": "value"})
     /// let res = users.get_generic::<HashMap<String, User>().unwrap();
     pub fn get_generic<T>(&self) -> Result<ResponseGeneric<T>, RequestError>
-        where
-            T: DeserializeOwned,
+    where
+        T: DeserializeOwned,
     {
         match self.get() {
             Ok(res) => Ok(ResponseGeneric {
@@ -337,8 +365,8 @@ impl Firebase {
     ///  });
     ///  job.join();
     pub fn get_async<F>(&self, callback: F) -> JoinHandle<()>
-        where
-            F: Fn(Result<Response, RequestError>) + Send + 'static,
+    where
+        F: Fn(Result<Response, RequestError>) + Send + 'static,
     {
         Firebase::request_url_async(&self.url, Method::GET, None, callback)
     }
@@ -365,9 +393,9 @@ impl Firebase {
     ///  });
     ///  job.join();
     pub fn push_async<S, F>(&self, data: S, callback: F) -> JoinHandle<()>
-        where
-            F: Fn(Result<Response, RequestError>) + Send + 'static,
-            S: Into<String>,
+    where
+        F: Fn(Result<Response, RequestError>) + Send + 'static,
+        S: Into<String>,
     {
         Firebase::request_url_async(&self.url, Method::POST, Some(data.into()), callback)
     }
@@ -393,9 +421,9 @@ impl Firebase {
     ///  });
     ///  job.join();
     pub fn delete_async<S, F>(&self, data: S, callback: F) -> JoinHandle<()>
-        where
-            F: Fn(Result<Response, RequestError>) + Send + 'static,
-            S: Into<String>,
+    where
+        F: Fn(Result<Response, RequestError>) + Send + 'static,
+        S: Into<String>,
     {
         Firebase::request_url_async(&self.url, Method::DELETE, Some(data.into()), callback)
     }
@@ -421,9 +449,9 @@ impl Firebase {
     ///  });
     ///  job.join();
     pub fn update_async<S, F>(&self, data: S, callback: F) -> JoinHandle<()>
-        where
-            F: Fn(Result<Response, RequestError>) + Send + 'static,
-            S: Into<String>,
+    where
+        F: Fn(Result<Response, RequestError>) + Send + 'static,
+        S: Into<String>,
     {
         Firebase::request_url_async(&self.url, Method::PATCH, Some(data.into()), callback)
     }
@@ -465,8 +493,8 @@ impl FirebaseParams {
     /// Asynchronous method for delete.
     /// Takes a callback function and returns a handle.
     pub fn get_async<F>(&self, callback: F) -> JoinHandle<()>
-        where
-            F: Fn(Result<Response, RequestError>) + 'static + Send,
+    where
+        F: Fn(Result<Response, RequestError>) + 'static + Send,
     {
         Firebase::request_url_async(&self.url, Method::GET, None, callback)
     }
@@ -484,10 +512,9 @@ impl FirebaseParams {
 
     pub fn set_params(&mut self) {
         let mut url = (*self.url).clone();
-        self.params
-            .iter()
-            .map(|(k, v)| url.set_query(Some(format!("{}={}", k, v).as_str())))
-            .collect::<()>();
+        for (k, v) in self.params.iter() {
+            url.set_query(Some(format!("{}={}", k, v).as_str()));
+        }
         self.url = Arc::new(url)
     }
 
