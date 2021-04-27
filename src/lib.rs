@@ -60,7 +60,7 @@ impl Display for UrlParseError {
         match self {
             UrlParseError::NoPath => write!(f, "URL path is missing."),
             UrlParseError::NotHttps => write!(f, "The URL protocol should be https."),
-            UrlParseError::Parser(e) => write!(f, "Error while parsing: {}", e),
+            UrlParseError::Parser(e) => write!(f, "Error while parsing the URL: {}", e),
         }
     }
 }
