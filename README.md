@@ -30,5 +30,3 @@ let _firebase = Firebase::auth("https://myfirebase.firebaseio.com", "AUTH_KEY").
 
 
 # WIP
-
-
