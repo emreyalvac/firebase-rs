@@ -29,9 +29,10 @@ let firebase = Firebase::auth("https://myfirebase.firebaseio.com", "AUTH_KEY").u
 
 ### At usage for nested objects
 ````rust
-let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
+let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID").at(...);
 ````
 
+---
 
 ### Read Data
 
@@ -61,4 +62,32 @@ struct User {
 
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
 let user = firebase.get_generic::<HashMap<String, User>>().await;
+````
+
+---
+
+### Set Data
+````rust
+#[derive(Serialize, Deserialize, Debug)]
+struct User {
+  name: String
+}
+
+let user = User { name: String::default() };
+let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
+let users = firebase.set(&user).await;
+````
+
+---
+
+### Update Data
+````rust
+#[derive(Serialize, Deserialize, Debug)]
+struct User {
+  name: String
+}
+
+let user = User { name: String::default() };
+let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
+let users = firebase.update(&user).await;
 ````
