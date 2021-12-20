@@ -16,17 +16,49 @@ Rust based Firebase library.
 use firebase_rs::*;
 ````
 
-# Creating a Firebase instance
-
 ### Without Auth
 ````rust
-let _firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
+let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
 ````
 
 ### With Auth
 ````rust
-let _firebase = Firebase::auth("https://myfirebase.firebaseio.com", "AUTH_KEY").unwrap();
+let firebase = Firebase::auth("https://myfirebase.firebaseio.com", "AUTH_KEY").unwrap();
+````
+---
+
+### At usage for path
+````rust
+let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
 ````
 
 
-# WIP
+### Read Data
+
+#### Read data as string
+````rust
+let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
+let users = firebase.get().await;
+````
+
+#### Read data with generic type (Single record)
+````rust
+#[derive(Serialize, Deserialize, Debug)]
+struct User {
+  name: String
+}
+
+let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
+let user = firebase.get_generic::<User>().await;
+````
+
+#### Read data with generic type (All)
+````rust
+#[derive(Serialize, Deserialize, Debug)]
+struct User {
+  name: String
+}
+
+let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
+let user = firebase.get_generic::<HashMap<String, User>>().await;
+````
