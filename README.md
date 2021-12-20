@@ -91,3 +91,12 @@ let user = User { name: String::default() };
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
 let users = firebase.update(&user).await;
 ````
+
+---
+
+### With Params
+````rust
+let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().with_params().start_at(1).order_by("name").equal_to(5).finish();
+let result = firebase.get().await;
+````
+
