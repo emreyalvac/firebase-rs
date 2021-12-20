@@ -27,7 +27,7 @@ let firebase = Firebase::auth("https://myfirebase.firebaseio.com", "AUTH_KEY").u
 ````
 ---
 
-### At usage for path
+### At usage for nested objects
 ````rust
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
 ````
