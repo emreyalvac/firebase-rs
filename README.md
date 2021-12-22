@@ -7,7 +7,7 @@ Rust based Firebase library.
 ![firebase](https://firebase.google.com/downloads/brand-guidelines/SVG/logo-logomark.svg 'Firebase')
 
 # Full Documentation
-[Documentation](https://docs.rs/firebase-rs/1.0.3/firebase_rs/)
+[Documentation](https://docs.rs/firebase-rs/2.0.1/firebase_rs/)
 
 # How to use
 
