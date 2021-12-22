@@ -1,11 +1,13 @@
+use crate::constants::{
+    END_AT, EQUAL_TO, EXPORT, FORMAT, LIMIT_TO_FIRST, LIMIT_TO_LAST, ORDER_BY, SHALLOW, START_AT,
+};
+use crate::Firebase;
 use std::collections::HashMap;
 use url::Url;
-use crate::{Firebase, UrlParseError};
-use crate::constants::{END_AT, EQUAL_TO, EXPORT, FORMAT, LIMIT_TO_FIRST, LIMIT_TO_LAST, ORDER_BY, SHALLOW, START_AT};
 
 pub struct Params {
     pub uri: Url,
-    pub params: HashMap<&'static str, String>,
+    pub params: HashMap<String, String>,
 }
 
 impl Params {
@@ -22,15 +24,17 @@ impl Params {
         }
     }
 
-    pub fn add_param<T: ToString>(&mut self, key: &'static str, value: T) -> &mut Self {
-        let value = value.to_string();
-        self.params.insert(key, value);
+    pub fn add_param<T>(&mut self, key: &str, value: T) -> &mut Self
+    where
+        T: ToString,
+    {
+        self.params.insert(key.to_string(), value.to_string());
         self.set_params();
 
         self
     }
 
-    pub fn order_by(&mut self, key: &'static str) -> &mut Params {
+    pub fn order_by(&mut self, key: &str) -> &mut Params {
         self.add_param(ORDER_BY, key)
     }
 
@@ -63,6 +67,6 @@ impl Params {
     }
 
     pub fn finish(&self) -> Firebase {
-        Firebase::new(self.uri.to_string()).unwrap()
+        Firebase::new(self.uri.as_str()).unwrap()
     }
 }
