@@ -1,8 +1,9 @@
-use crate::UrlParseError;
 use url::Url;
+use crate::errors::UrlParseResult;
+use crate::UrlParseError;
 
-pub fn check_uri(uri: &String) -> Result<Url, UrlParseError> {
-    let uri = Url::parse(uri.as_str());
+pub fn check_uri(uri: &str) -> UrlParseResult<Url> {
+    let uri = Url::parse(uri);
 
     let uri = match uri {
         Ok(res) => res,

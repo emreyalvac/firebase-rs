@@ -1,5 +1,7 @@
 use std::fmt::{Display, Formatter};
 
+pub type UrlParseResult<T> = Result<T, UrlParseError>;
+
 #[derive(Debug)]
 pub enum UrlParseError {
     NoPath,
@@ -17,6 +19,8 @@ impl Display for UrlParseError {
     }
 }
 
+pub type RequestResult<T> = Result<T, RequestError>;
+
 #[derive(Debug)]
 pub enum RequestError {
     NotJSON,
@@ -31,7 +35,7 @@ impl Display for RequestError {
         match self {
             RequestError::NotJSON => write!(f, "Invalid JSON"),
             RequestError::NoUTF8 => write!(f, "Utf8 error"),
-            RequestError::NetworkError => write!(f, "Curl error"),
+            RequestError::NetworkError => write!(f, "Network error"),
             RequestError::SerializeError => write!(f, "Serialize error"),
             RequestError::NotFoundOrNullBody => write!(f, "Body is null or record is not found"),
         }
