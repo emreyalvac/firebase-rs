@@ -1,7 +1,7 @@
 use crate::constants::{
     END_AT, EQUAL_TO, EXPORT, FORMAT, LIMIT_TO_FIRST, LIMIT_TO_LAST, ORDER_BY, SHALLOW, START_AT,
 };
-use crate::{Firebase};
+use crate::Firebase;
 use std::collections::HashMap;
 use url::Url;
 
@@ -24,7 +24,10 @@ impl Params {
         }
     }
 
-    pub fn add_param<T>(&mut self, key: &str, value: T) -> &mut Self where T: ToString {
+    pub fn add_param<T>(&mut self, key: &str, value: T) -> &mut Self
+    where
+        T: ToString,
+    {
         self.params.insert(key.to_string(), value.to_string());
         self.set_params();
 

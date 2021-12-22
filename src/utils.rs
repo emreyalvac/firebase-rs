@@ -1,6 +1,6 @@
-use url::Url;
 use crate::errors::UrlParseResult;
 use crate::UrlParseError;
+use url::Url;
 
 pub fn check_uri(uri: &str) -> UrlParseResult<Url> {
     let uri = Url::parse(uri);
