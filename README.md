@@ -36,6 +36,13 @@ let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("u
 
 ### Read Data
 
+#### Read data as string
+````rust
+let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
+let users = firebase.get_as_string().await;
+````
+
+
 #### Read data with generic type (All)
 ````rust
 #[derive(Serialize, Deserialize, Debug)]
@@ -47,12 +54,6 @@ let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("u
 let user = firebase.get::<HashMap<String, User>>().await;
 ````
 
-#### Read data as string
-````rust
-let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
-let users = firebase.get_as_string().await;
-````
-
 #### Read data with generic type (Single record)
 ````rust
 #[derive(Serialize, Deserialize, Debug)]
@@ -61,7 +62,7 @@ struct User {
 }
 
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
-let user = firebase.get_generic::<User>().await;
+let user = firebase.get::<User>().await;
 ````
 
 
@@ -76,7 +77,7 @@ struct User {
 
 let user = User { name: String::default() };
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
-let users = firebase.set(&user).await;
+firebase.set(&user).await;
 ````
 
 ---
@@ -90,5 +91,5 @@ struct User {
 
 let user = User { name: String::default() };
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
-let users = firebase.update(&user).await;
+firebase.update(&user).await;
 ````
