@@ -9,6 +9,10 @@ Rust based Firebase library.
 # Full Documentation
 [Documentation](https://docs.rs/firebase-rs/2.0.1/firebase_rs/)
 
+
+# TODO
+- Listen for value events
+
 # How to use
 
 ### Load library
@@ -101,4 +105,3 @@ firebase.update(&user).await;
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().with_params().start_at(1).order_by("name").equal_to(5).finish();
 let result = firebase.get().await;
 ````
-
