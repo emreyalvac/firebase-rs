@@ -18,6 +18,7 @@ use crate::params::Params;
 mod constants;
 mod errors;
 mod utils;
+mod event_source;
 mod params;
 
 #[derive(Debug)]
@@ -208,8 +209,10 @@ mod tests {
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
     use std::num::NonZeroU16;
+    use url::Url;
 
     use crate::{Firebase, Method, UrlParseError};
+    use crate::event_source::EventSource;
 
     const URI: &str = "https://firebase_id.firebaseio.com";
     const URI_WITH_SLASH: &str = "https://firebase_id.firebaseio.com/";
@@ -245,5 +248,16 @@ mod tests {
             .unwrap()
             .at("movies/movie1.json");
         assert_eq!(format!("{}/movies/movie1.json", URI), firebase.get_uri());
+    }
+
+    #[tokio::test]
+    async fn test_events() {
+        let mut event_source =
+            EventSource::new(Url::parse(URI).unwrap());
+
+        event_source
+            .register_event("/user", || println!("OK"))
+            .await;
+        event_source.listen().await;
     }
 }
