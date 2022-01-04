@@ -12,6 +12,7 @@ Rust based Firebase library.
 
 # TODO
 - Listen for value events
+- Epoll Integration
 
 # How to use
 
