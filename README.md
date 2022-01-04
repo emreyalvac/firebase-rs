@@ -11,7 +11,7 @@ Rust based Firebase library.
 
 
 # TODO
-- Listen for value events - In progress (https://github.com/emreyalvac/firebase-rs/pull/11)
+- Listen SSE events - In progress (https://github.com/emreyalvac/firebase-rs/pull/11)
 - Epoll Integration
 
 # How to use
