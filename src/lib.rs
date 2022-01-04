@@ -11,6 +11,7 @@ use params::Params;
 use utils::check_uri;
 
 mod constants;
+mod event_source;
 mod errors;
 mod params;
 mod utils;
@@ -26,8 +27,8 @@ impl Firebase {
     // let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
     /// ```
     pub fn new(uri: &str) -> UrlParseResult<Self>
-    where
-        Self: Sized,
+        where
+            Self: Sized,
     {
         match check_uri(&uri) {
             Ok(uri) => Ok(Self { uri }),
@@ -40,8 +41,8 @@ impl Firebase {
     // let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
     /// ```
     pub fn auth(uri: &str, auth_key: &str) -> UrlParseResult<Self>
-    where
-        Self: Sized,
+        where
+            Self: Sized,
     {
         match check_uri(&uri) {
             Ok(mut uri) => {
@@ -166,8 +167,8 @@ impl Firebase {
     }
 
     async fn request_generic<T>(&self, method: Method) -> RequestResult<T>
-    where
-        T: Serialize + DeserializeOwned + Debug,
+        where
+            T: Serialize + DeserializeOwned + Debug,
     {
         let request = self.request(method, None).await;
 
@@ -193,8 +194,8 @@ impl Firebase {
     // let users = firebase.set(&user).await;
     /// ```
     pub async fn set<T>(&self, data: &T) -> RequestResult<Response>
-    where
-        T: Serialize + DeserializeOwned + Debug,
+        where
+            T: Serialize + DeserializeOwned + Debug,
     {
         let data = serde_json::to_value(&data).unwrap();
         self.request(Method::POST, Some(data)).await
@@ -225,8 +226,8 @@ impl Firebase {
     // let user = firebase.get_generic::<HashMap<String, User>>().await;
     /// ```
     pub async fn get<T>(&self) -> RequestResult<T>
-    where
-        T: Serialize + DeserializeOwned + Debug,
+        where
+            T: Serialize + DeserializeOwned + Debug,
     {
         self.request_generic::<T>(Method::GET).await
     }
@@ -252,8 +253,8 @@ impl Firebase {
     // let users = firebase.update(&user).await;
     /// ```
     pub async fn update<T>(&self, data: &T) -> RequestResult<Response>
-    where
-        T: DeserializeOwned + Serialize + Debug,
+        where
+            T: DeserializeOwned + Serialize + Debug,
     {
         let value = serde_json::to_value(&data).unwrap();
         self.request(Method::PATCH, Some(value)).await
@@ -262,7 +263,9 @@ impl Firebase {
 
 #[cfg(test)]
 mod tests {
+    use url::Url;
     use crate::{Firebase, UrlParseError};
+    use crate::event_source::EventSource;
 
     const URI: &str = "https://firebase_id.firebaseio.com";
     const URI_WITH_SLASH: &str = "https://firebase_id.firebaseio.com/";
@@ -290,5 +293,16 @@ mod tests {
             format!("{}/?auth=auth_key", URI.to_string()),
             firebase.get_uri()
         );
+    }
+
+    #[tokio::test]
+    async fn test_events() {
+        let mut event_source =
+            EventSource::new(Url::parse(URI).unwrap());
+
+        event_source
+            .register_event("/user", || println!("OK"))
+            .await;
+        event_source.listen().await;
     }
 }
