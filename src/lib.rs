@@ -11,14 +11,21 @@ use params::Params;
 use utils::check_uri;
 
 mod constants;
-mod event_source;
 mod errors;
+mod event_source;
 mod params;
 mod utils;
 
 #[derive(Debug)]
 pub struct Firebase {
     uri: Url,
+}
+
+#[derive(Debug)]
+pub struct Event {
+    pub id: Option<String>,
+    pub event_type: Option<String>,
+    pub data: String,
 }
 
 impl Firebase {
@@ -263,9 +270,9 @@ impl Firebase {
 
 #[cfg(test)]
 mod tests {
-    use url::Url;
-    use crate::{Firebase, UrlParseError};
     use crate::event_source::EventSource;
+    use crate::{Event, Firebase, UrlParseError};
+    use url::Url;
 
     const URI: &str = "https://firebase_id.firebaseio.com";
     const URI_WITH_SLASH: &str = "https://firebase_id.firebaseio.com/";
@@ -297,12 +304,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_events() {
-        let mut event_source =
-            EventSource::new(Url::parse(URI).unwrap());
+        let mut event_source = EventSource::new();
 
-        event_source
-            .register_event("/user", || println!("OK"))
-            .await;
-        event_source.listen().await;
+        let a = |e: Event| {
+            println!("Ok {:?}", e);
+        };
+
+        event_source.listen_all_events(a).await;
     }
 }
