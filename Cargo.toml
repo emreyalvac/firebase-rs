@@ -1,11 +1,11 @@
 [package]
 name = "firebase-rs"
 edition = "2021"
-version = "2.0.3"
+version = "2.0.4"
 description = "Rust based Firebase library"
 readme = "README.md"
 repository = "https://github.com/emreyalvac/firebase-rs"
-documentation = "https://docs.rs/firebase-rs/2.0.3/firebase_rs/"
+documentation = "https://docs.rs/firebase-rs/2.0.4/firebase_rs/"
 license = "MIT"
 authors = ["Emre YALVAÇ <emre.yalvac@outlook.com>"]
 exclude = ["examples/*", "tests/*"]

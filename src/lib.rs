@@ -22,6 +22,7 @@ pub struct Firebase {
 impl Firebase {
     /// ```
     /// use firebase_rs::Firebase;
+    ///
     /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
     /// ```
     pub fn new(uri: &str) -> UrlParseResult<Self>
@@ -36,6 +37,7 @@ impl Firebase {
 
     /// ```
     /// use firebase_rs::Firebase;
+    ///
     /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
     /// ```
     pub fn auth(uri: &str, auth_key: &str) -> UrlParseResult<Self>
@@ -53,9 +55,10 @@ impl Firebase {
 
     /// ```rust
     /// use firebase_rs::Firebase;
+    ///
     /// # async fn run() {
-    ///  let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().with_params().start_at(1).order_by("name").equal_to(5).finish();
-    ///  let result = firebase.get::<String>().await;
+    /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().with_params().start_at(1).order_by("name").equal_to(5).finish();
+    /// let result = firebase.get::<String>().await;
     /// # }
     /// ```
     pub fn with_params(&self) -> Params {
@@ -65,6 +68,7 @@ impl Firebase {
 
     /// ```
     /// use firebase_rs::Firebase;
+    ///
     /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID").at("f69111a8a5258c15286d3d0bd4688c55");
     /// ```
     pub fn at(&mut self, path: &str) -> Self {
@@ -94,6 +98,7 @@ impl Firebase {
 
     /// ```
     /// use firebase_rs::Firebase;
+    ///
     /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
     /// let uri = firebase.get_uri();
     /// ```
@@ -192,9 +197,9 @@ impl Firebase {
     /// }
     ///
     /// # async fn run() {
-    ///  let user = User { name: String::default() };
-    ///  let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
-    ///  let users = firebase.set(&user).await;
+    /// let user = User { name: String::default() };
+    /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
+    /// let users = firebase.set(&user).await;
     /// # }
     /// ```
     pub async fn set<T>(&self, data: &T) -> RequestResult<Response>
@@ -216,8 +221,8 @@ impl Firebase {
     /// }
     ///
     /// # async fn run() {
-    ///  let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
-    ///  let users = firebase.get::<HashMap<String, User>>().await;
+    /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
+    /// let users = firebase.get::<HashMap<String, User>>().await;
     /// # }
     /// ```
     pub async fn get_as_string(&self) -> RequestResult<Response> {
@@ -235,13 +240,13 @@ impl Firebase {
     /// }
     ///
     /// # async fn run() {
-    ///  let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
-    ///  let user = firebase.get::<User>().await;
+    /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
+    /// let user = firebase.get::<User>().await;
     ///
     ///  // OR
     ///
-    ///  let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
-    ///  let user = firebase.get::<HashMap<String, User>>().await;
+    /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
+    /// let user = firebase.get::<HashMap<String, User>>().await;
     /// # }
     /// ```
     pub async fn get<T>(&self) -> RequestResult<T>
@@ -253,9 +258,10 @@ impl Firebase {
 
     /// ```
     /// use firebase_rs::Firebase;
+    ///
     /// # async fn run() {
-    ///  let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
-    ///  firebase.delete().await;
+    /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
+    /// firebase.delete().await;
     /// # }
     /// ```
     pub async fn delete(&self) -> RequestResult<Response> {
@@ -272,9 +278,9 @@ impl Firebase {
     /// }
     ///
     /// # async fn run() {
-    ///  let user = User { name: String::default() };
-    ///  let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
-    ///  let users = firebase.update(&user).await;
+    /// let user = User { name: String::default() };
+    /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
+    /// let users = firebase.update(&user).await;
     /// # }
     /// ```
     pub async fn update<T>(&self, data: &T) -> RequestResult<Response>
