@@ -1,13 +1,12 @@
+use constants::{Method, Response, AUTH};
+use errors::{RequestError, RequestResult, UrlParseError, UrlParseResult};
+use params::Params;
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use serde_json::Value;
 use std::fmt::Debug;
 use url::Url;
-
-use constants::{Method, Response, AUTH};
-use errors::{RequestError, RequestResult, UrlParseError, UrlParseResult};
-use params::Params;
 use utils::check_uri;
 
 mod constants;
@@ -23,11 +22,12 @@ pub struct Firebase {
 impl Firebase {
     /// ```
     /// // Create Instance
-    // let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
+    /// use firebase_rs::Firebase;
+    /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
     /// ```
     pub fn new(uri: &str) -> UrlParseResult<Self>
-    where
-        Self: Sized,
+        where
+            Self: Sized,
     {
         match check_uri(&uri) {
             Ok(uri) => Ok(Self { uri }),
@@ -37,11 +37,12 @@ impl Firebase {
 
     /// ```
     /// // Create Instance with auth
-    // let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
+    /// use firebase_rs::Firebase;
+    /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
     /// ```
     pub fn auth(uri: &str, auth_key: &str) -> UrlParseResult<Self>
-    where
-        Self: Sized,
+        where
+            Self: Sized,
     {
         match check_uri(&uri) {
             Ok(mut uri) => {
@@ -52,10 +53,12 @@ impl Firebase {
         }
     }
 
-    /// ```
-    /// // With Params
-    // let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().with_params().start_at(1).order_by("name").equal_to(5).finish();
-    // let result = firebase.get<...>().await;
+    /// ```rust
+    /// use firebase_rs::Firebase;
+    /// # async fn run() {
+    ///     let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().with_params().start_at(1).order_by("name").equal_to(5).finish();
+    ///     let result = firebase.get::<String>().await;
+    /// # }
     /// ```
     pub fn with_params(&self) -> Params {
         let uri = self.uri.clone();
@@ -64,7 +67,8 @@ impl Firebase {
 
     /// ```
     /// // At usage for nested objects
-    // let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID").at(...);
+    /// use firebase_rs::Firebase;
+    /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID").at("f69111a8a5258c15286d3d0bd4688c55");
     /// ```
     pub fn at(&mut self, path: &str) -> Self {
         let mut new_path = String::default();
@@ -93,8 +97,9 @@ impl Firebase {
 
     /// ```
     /// // Get current URI
-    // let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
-    // let uri = firebase.get_uri();
+    /// use firebase_rs::Firebase;
+    /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
+    /// let uri = firebase.get_uri();
     /// ```
     pub fn get_uri(&self) -> String {
         self.uri.to_string()
@@ -166,8 +171,8 @@ impl Firebase {
     }
 
     async fn request_generic<T>(&self, method: Method) -> RequestResult<T>
-    where
-        T: Serialize + DeserializeOwned + Debug,
+        where
+            T: Serialize + DeserializeOwned + Debug,
     {
         let request = self.request(method, None).await;
 
@@ -183,18 +188,23 @@ impl Firebase {
 
     /// ```
     /// // Set Data
-    // #[derive(Serialize, Deserialize, Debug)]
-    // struct User {
-    //    name: String
-    //}
-    //
-    // let user = User { name: String::default() };
-    // let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
-    // let users = firebase.set(&user).await;
+    /// use firebase_rs::Firebase;
+    /// use serde::{Serialize, Deserialize};
+    ///
+    /// #[derive(Serialize, Deserialize, Debug)]
+    /// struct User {
+    ///    name: String
+    /// }
+    ///
+    /// # async fn run() {
+    ///     let user = User { name: String::default() };
+    ///     let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
+    ///     let users = firebase.set(&user).await;
+    /// # }
     /// ```
     pub async fn set<T>(&self, data: &T) -> RequestResult<Response>
-    where
-        T: Serialize + DeserializeOwned + Debug,
+        where
+            T: Serialize + DeserializeOwned + Debug,
     {
         let data = serde_json::to_value(&data).unwrap();
         self.request(Method::POST, Some(data)).await
@@ -202,8 +212,19 @@ impl Firebase {
 
     /// ```
     /// // Read Data as string
-    // let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
-    // let users = firebase.get().await;
+    /// use std::collections::HashMap;
+    /// use firebase_rs::Firebase;
+    /// use serde::{Serialize, Deserialize};
+    ///
+    /// #[derive(Serialize, Deserialize, Debug)]
+    /// struct User {
+    ///    name: String
+    /// }
+    ///
+    /// # async fn run() {
+    ///     let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
+    ///     let users = firebase.get::<HashMap<String, User>>().await;
+    /// # }
     /// ```
     pub async fn get_as_string(&self) -> RequestResult<Response> {
         self.request(Method::GET, None).await
@@ -211,30 +232,39 @@ impl Firebase {
 
     /// ```
     /// // Read Data
-    // #[derive(Serialize, Deserialize, Debug)]
-    // struct User {
-    //     name: String
-    // }
-    //
-    // let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
-    // let user = firebase.get_generic::<User>().await;
-    //
-    // // OR
-    //
-    // let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
-    // let user = firebase.get_generic::<HashMap<String, User>>().await;
+    /// use std::collections::HashMap;
+    /// use firebase_rs::Firebase;
+    /// use serde::{Serialize, Deserialize};
+    ///
+    /// #[derive(Serialize, Deserialize, Debug)]
+    /// struct User {
+    ///     name: String
+    /// }
+    ///
+    /// # async fn run() {
+    ///     let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
+    ///     let user = firebase.get::<User>().await;
+    ///
+    ///     // OR
+    ///
+    ///     let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
+    ///     let user = firebase.get::<HashMap<String, User>>().await;
+    /// # }
     /// ```
     pub async fn get<T>(&self) -> RequestResult<T>
-    where
-        T: Serialize + DeserializeOwned + Debug,
+        where
+            T: Serialize + DeserializeOwned + Debug,
     {
         self.request_generic::<T>(Method::GET).await
     }
 
     /// ```
     /// // Delete Data
-    // let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
-    // firebase.delete().await;
+    /// use firebase_rs::Firebase;
+    /// # async fn run() {
+    ///     let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
+    ///     firebase.delete().await;
+    /// # }
     /// ```
     pub async fn delete(&self) -> RequestResult<Response> {
         self.request(Method::DELETE, None).await
@@ -242,18 +272,23 @@ impl Firebase {
 
     /// ```
     /// // Update Data
-    // #[derive(Serialize, Deserialize, Debug)]
-    // struct User {
-    //     name: String
-    // }
-    //
-    // let user = User { name: String::default() };
-    // let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
-    // let users = firebase.update(&user).await;
+    /// use firebase_rs::Firebase;
+    /// use serde::{Serialize, Deserialize};
+    ///
+    /// #[derive(Serialize, Deserialize, Debug)]
+    /// struct User {
+    ///     name: String
+    /// }
+    ///
+    /// # async fn run() {
+    ///     let user = User { name: String::default() };
+    ///     let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
+    ///     let users = firebase.update(&user).await;
+    /// # }
     /// ```
     pub async fn update<T>(&self, data: &T) -> RequestResult<Response>
-    where
-        T: DeserializeOwned + Serialize + Debug,
+        where
+            T: DeserializeOwned + Serialize + Debug,
     {
         let value = serde_json::to_value(&data).unwrap();
         self.request(Method::PATCH, Some(value)).await
