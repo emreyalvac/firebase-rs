@@ -71,7 +71,7 @@ impl Firebase {
     ///
     /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID").at("f69111a8a5258c15286d3d0bd4688c55");
     /// ```
-    pub fn at(&mut self, path: &str) -> Self {
+    pub fn at(&self, path: &str) -> Self {
         let mut new_path = String::default();
 
         let paths = self.uri.path_segments().map(|p| p.collect::<Vec<_>>());
@@ -88,11 +88,10 @@ impl Firebase {
             new_path = new_path.trim_end_matches(".json").to_string();
         }
 
-        self.uri
-            .set_path(format!("{}.json", new_path.as_str()).as_str());
-
+        let mut uri = self.uri.clone();
+        uri.set_path(&format!("{}.json", new_path));
         Self {
-            uri: self.uri.clone(),
+            uri,
         }
     }
 
