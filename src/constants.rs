@@ -13,6 +13,7 @@ pub const EXPORT: &str = "export";
 pub enum Method {
     GET,
     POST,
+    PUT,
     DELETE,
     PATCH,
 }

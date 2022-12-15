@@ -26,8 +26,8 @@ impl Firebase {
     /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
     /// ```
     pub fn new(uri: &str) -> UrlParseResult<Self>
-        where
-            Self: Sized,
+    where
+        Self: Sized,
     {
         match check_uri(&uri) {
             Ok(uri) => Ok(Self { uri }),
@@ -41,8 +41,8 @@ impl Firebase {
     /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
     /// ```
     pub fn auth(uri: &str, auth_key: &str) -> UrlParseResult<Self>
-        where
-            Self: Sized,
+    where
+        Self: Sized,
     {
         match check_uri(&uri) {
             Ok(mut uri) => {
@@ -90,9 +90,7 @@ impl Firebase {
 
         let mut uri = self.uri.clone();
         uri.set_path(&format!("{}.json", new_path));
-        Self {
-            uri,
-        }
+        Self { uri }
     }
 
     /// ```
@@ -144,6 +142,20 @@ impl Firebase {
                     Err(_) => Err(RequestError::NetworkError),
                 }
             }
+            Method::PUT => {
+                if !data.is_some() {
+                    return Err(RequestError::SerializeError);
+                }
+
+                let request = client.put(self.uri.to_string()).json(&data).send().await;
+                match request {
+                    Ok(response) => {
+                        let data = response.text().await.unwrap();
+                        Ok(Response { data })
+                    }
+                    Err(_) => Err(RequestError::NetworkError),
+                }
+            }
             Method::PATCH => {
                 if !data.is_some() {
                     return Err(RequestError::SerializeError);
@@ -171,8 +183,8 @@ impl Firebase {
     }
 
     async fn request_generic<T>(&self, method: Method) -> RequestResult<T>
-        where
-            T: Serialize + DeserializeOwned + Debug,
+    where
+        T: Serialize + DeserializeOwned + Debug,
     {
         let request = self.request(method, None).await;
 
@@ -202,8 +214,31 @@ impl Firebase {
     /// # }
     /// ```
     pub async fn set<T>(&self, data: &T) -> RequestResult<Response>
-        where
-            T: Serialize + DeserializeOwned + Debug,
+    where
+        T: Serialize + DeserializeOwned + Debug,
+    {
+        let data = serde_json::to_value(&data).unwrap();
+        self.request(Method::PUT, Some(data)).await
+    }
+
+    /// ```
+    /// use firebase_rs::Firebase;
+    /// use serde::{Serialize, Deserialize};
+    ///
+    /// #[derive(Serialize, Deserialize, Debug)]
+    /// struct User {
+    ///    name: String
+    /// }
+    ///
+    /// # async fn run() {
+    /// let user = User { name: String::default() };
+    /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
+    /// let users = firebase.insert(&user).await;
+    /// # }
+    /// ```
+    pub async fn insert<T>(&self, data: &T) -> RequestResult<Response>
+    where
+        T: Serialize + DeserializeOwned + Debug,
     {
         let data = serde_json::to_value(&data).unwrap();
         self.request(Method::POST, Some(data)).await
@@ -249,8 +284,8 @@ impl Firebase {
     /// # }
     /// ```
     pub async fn get<T>(&self) -> RequestResult<T>
-        where
-            T: Serialize + DeserializeOwned + Debug,
+    where
+        T: Serialize + DeserializeOwned + Debug,
     {
         self.request_generic::<T>(Method::GET).await
     }
@@ -283,8 +318,8 @@ impl Firebase {
     /// # }
     /// ```
     pub async fn update<T>(&self, data: &T) -> RequestResult<Response>
-        where
-            T: DeserializeOwned + Serialize + Debug,
+    where
+        T: DeserializeOwned + Serialize + Debug,
     {
         let value = serde_json::to_value(&data).unwrap();
         self.request(Method::PATCH, Some(value)).await
