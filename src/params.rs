@@ -4,7 +4,9 @@ use crate::constants::{
 use crate::Firebase;
 use std::collections::HashMap;
 use url::Url;
+use itertools::Itertools;
 
+#[derive(Debug)]
 pub struct Params {
     pub uri: Url,
     pub params: HashMap<String, String>,
@@ -19,14 +21,14 @@ impl Params {
     }
 
     pub fn set_params(&mut self) -> () {
-        for (k, v) in self.params.iter() {
-            self.uri.set_query(Some(format!("{}={}", k, v).as_str()));
+        for (k, v) in self.params.iter().sorted() {
+            self.uri.query_pairs_mut().append_pair(k, v);
         }
     }
 
     pub fn add_param<T>(&mut self, key: &str, value: T) -> &mut Self
-    where
-        T: ToString,
+        where
+            T: ToString,
     {
         self.params.insert(key.to_string(), value.to_string());
         self.set_params();
@@ -68,5 +70,24 @@ impl Params {
 
     pub fn finish(&self) -> Firebase {
         Firebase::new(self.uri.as_str()).unwrap()
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
+    use url::Url;
+    use crate::params::Params;
+
+    #[test]
+    fn check_params() {
+        let mut params: HashMap<String, String> = HashMap::new();
+        params.insert("param_1".to_owned(), "value_1".to_owned());
+        params.insert("param_2".to_owned(), "value_2".to_owned());
+        let mut param = Params { uri: Url::parse("https://github.com/emreyalvac").unwrap(), params };
+        param.set_params();
+
+        assert_eq!(param.uri.as_str(), "https://github.com/emreyalvac?param_1=value_1&param_2=value_2")
     }
 }
