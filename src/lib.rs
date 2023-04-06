@@ -1,7 +1,7 @@
 use constants::{Method, Response, AUTH};
 use errors::{RequestError, RequestResult, UrlParseError, UrlParseResult};
 use params::Params;
-use reqwest::StatusCode;
+use reqwest::{Client, StatusCode};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use serde_json::Value;
@@ -26,11 +26,13 @@ impl Firebase {
     /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
     /// ```
     pub fn new(uri: &str) -> UrlParseResult<Self>
-        where
-            Self: Sized,
+    where
+        Self: Sized,
     {
         match check_uri(&uri) {
-            Ok(uri) => Ok(Self { uri }),
+            Ok(uri) => Ok(Self {
+                uri,
+            }),
             Err(err) => Err(err),
         }
     }
@@ -38,16 +40,18 @@ impl Firebase {
     /// ```
     /// use firebase_rs::Firebase;
     ///
-    /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
+    /// let firebase = Firebase::auth("https://myfirebase.firebaseio.com", "my_auth_key").unwrap();
     /// ```
     pub fn auth(uri: &str, auth_key: &str) -> UrlParseResult<Self>
-        where
-            Self: Sized,
+    where
+        Self: Sized,
     {
         match check_uri(&uri) {
             Ok(mut uri) => {
                 uri.set_query(Some(&format!("{}={}", AUTH, auth_key)));
-                Ok(Self { uri })
+                Ok(Self {
+                    uri,
+                })
             }
             Err(err) => Err(err),
         }
@@ -71,28 +75,20 @@ impl Firebase {
     ///
     /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID").at("f69111a8a5258c15286d3d0bd4688c55");
     /// ```
-    pub fn at(&self, path: &str) -> Self {
-        let mut new_path = String::default();
+    pub fn at(&mut self, path: &str) -> &mut Self {
+        let re_path: String = self
+            .uri
+            .path_segments()
+            .unwrap_or_else(|| panic!("cannot be base"))
+            .map(|seg| format!("{}/", seg.trim_end_matches(".json")))
+            .collect();
 
-        let paths = self.uri.path_segments().map(|p| p.collect::<Vec<_>>());
-        for mut path in paths.unwrap() {
-            if path.find(".json").is_some() {
-                path = path.trim_end_matches(".json");
-            }
-            new_path += format!("{}/", path).as_str();
-        }
+        let new_path = re_path + path;
 
-        new_path += path;
+        self.uri
+            .set_path(&format!("{}.json", new_path.trim_end_matches(".json")));
 
-        if new_path.find(".json").is_some() {
-            new_path = new_path.trim_end_matches(".json").to_string();
-        }
-
-        let mut uri = self.uri.clone();
-        uri.set_path(&format!("{}.json", new_path));
-        Self {
-            uri,
-        }
+        self
     }
 
     /// ```
@@ -106,7 +102,7 @@ impl Firebase {
     }
 
     async fn request(&self, method: Method, data: Option<Value>) -> RequestResult<Response> {
-        let client = reqwest::Client::new();
+        let client = Client::new();
 
         return match method {
             Method::GET => {
@@ -171,8 +167,8 @@ impl Firebase {
     }
 
     async fn request_generic<T>(&self, method: Method) -> RequestResult<T>
-        where
-            T: Serialize + DeserializeOwned + Debug,
+    where
+        T: Serialize + DeserializeOwned + Debug,
     {
         let request = self.request(method, None).await;
 
@@ -202,8 +198,8 @@ impl Firebase {
     /// # }
     /// ```
     pub async fn set<T>(&self, data: &T) -> RequestResult<Response>
-        where
-            T: Serialize + DeserializeOwned + Debug,
+    where
+        T: Serialize + DeserializeOwned + Debug,
     {
         let data = serde_json::to_value(&data).unwrap();
         self.request(Method::POST, Some(data)).await
@@ -249,8 +245,8 @@ impl Firebase {
     /// # }
     /// ```
     pub async fn get<T>(&self) -> RequestResult<T>
-        where
-            T: Serialize + DeserializeOwned + Debug,
+    where
+        T: Serialize + DeserializeOwned + Debug,
     {
         self.request_generic::<T>(Method::GET).await
     }
@@ -283,8 +279,8 @@ impl Firebase {
     /// # }
     /// ```
     pub async fn update<T>(&self, data: &T) -> RequestResult<Response>
-        where
-            T: DeserializeOwned + Serialize + Debug,
+    where
+        T: DeserializeOwned + Serialize + Debug,
     {
         let value = serde_json::to_value(&data).unwrap();
         self.request(Method::PATCH, Some(value)).await
