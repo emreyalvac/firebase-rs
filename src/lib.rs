@@ -39,9 +39,13 @@ impl Firebase {
     }
 
     /// ```
+    /// const URI = "...";
+    /// const AUTH_KEY = "...";
+    ///
     /// use firebase_rs::Firebase;
     ///
     /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
+    /// let parsed = firebase.auth(URI, AUTH_KEY);
     /// ```
     pub fn auth(uri: &str, auth_key: &str) -> UrlParseResult<Self>
         where
