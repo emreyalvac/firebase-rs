@@ -8,11 +8,14 @@ use serde_json::Value;
 use std::fmt::Debug;
 use url::Url;
 use utils::check_uri;
+use crate::errors::ServerEventError;
+use crate::sse::ServerEvents;
 
 mod constants;
 mod errors;
 mod params;
 mod utils;
+mod sse;
 
 #[derive(Debug)]
 pub struct Firebase {
@@ -64,6 +67,20 @@ impl Firebase {
     pub fn with_params(&self) -> Params {
         let uri = self.uri.clone();
         Params::new(uri)
+    }
+
+    /// ```rust
+    /// use firebase_rs::Firebase;
+    /// # async fn run() {
+    /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
+    /// let stream = firebase.with_realtime_events().unwrap();
+    /// stream.listen(|event_type, data| {
+    ///                     println!(event_type, data);
+    ///                 }, |err| println!(err), false).await;
+    /// # }
+    /// ```
+    pub fn with_realtime_events(&self) -> Option<ServerEvents> {
+        ServerEvents::new(self.uri.as_str())
     }
 
     /// ```
@@ -321,5 +338,10 @@ mod tests {
             format!("{}/?auth=auth_key", URI.to_string()),
             firebase.get_uri()
         );
+    }
+
+    #[tokio::test]
+    async fn with_sse_events() {
+        // TODO: SSE Events Test
     }
 }

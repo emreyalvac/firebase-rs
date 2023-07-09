@@ -7,102 +7,126 @@ Rust based Firebase library.
 ![firebase](https://firebase.google.com/downloads/brand-guidelines/SVG/logo-logomark.svg 'Firebase')
 
 # Full Documentation
-[Documentation](https://docs.rs/firebase-rs/2.0.6/firebase_rs/)
 
+[Documentation](https://docs.rs/firebase-rs/2.0.7/firebase_rs/)
 
-# TODO
-- Listen SSE events - In progress (https://github.com/emreyalvac/firebase-rs/pull/11)
-- Epoll Integration
+# Features
+
+- Server-Sent Events
+- Generic Payload
 
 # How to use
 
 ### Load library
+
 ````rust
 use firebase_rs::*;
 ````
 
 ### Without Auth
+
 ````rust
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
 ````
 
 ### With Auth
+
 ````rust
 let firebase = Firebase::auth("https://myfirebase.firebaseio.com", "AUTH_KEY").unwrap();
 ````
+
 ---
 
 ### At usage for nested objects
+
 ````rust
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID").at(...);
 ````
 
 ---
 
+### Read Data as Stream
+
+### With Real Time Events
+
+````rust
+let firebase = Firebase::new("https://myfirebase.firebaseio.com").at("users").unwrap();
+let stream = firebase.with_realtime_events().unwrap();
+stream
+.listen( | event_type, data| {
+println ! ("Type: {:?} Data: {:?}", event_type, data);
+}, | err| println!("{:?}", err), false).await;
+````
+
 ### Read Data
 
 #### Read data as string
+
 ````rust
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
 let users = firebase.get_as_string().await;
 ````
 
-
 #### Read data with generic type (All)
+
 ````rust
 #[derive(Serialize, Deserialize, Debug)]
 struct User {
-  name: String
+    name: String
 }
 
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
-let user = firebase.get::<HashMap<String, User>>().await;
+let user = firebase.get::<HashMap<String, User> > ().await;
 ````
 
 #### Read data with generic type (Single record)
+
 ````rust
 #[derive(Serialize, Deserialize, Debug)]
 struct User {
-  name: String
+    name: String
 }
 
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
 let user = firebase.get::<User>().await;
 ````
 
-
 ---
 
 ### Set Data
+
 ````rust
 #[derive(Serialize, Deserialize, Debug)]
 struct User {
-  name: String
+    name: String
 }
 
-let user = User { name: String::default() };
+let user = User { name: String::default () };
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
-firebase.set(&user).await;
+firebase.set( & user).await;
 ````
 
 ---
 
 ### Update Data
+
 ````rust
 #[derive(Serialize, Deserialize, Debug)]
 struct User {
-  name: String
+    name: String
 }
 
-let user = User { name: String::default() };
+let user = User { name: String::default () };
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
-firebase.update(&user).await;
+firebase.update( & user).await;
 ````
 
 ---
 
 ### With Params
+
 ````rust
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().with_params().start_at(1).order_by("name").equal_to(5).finish();
 let result = firebase.get().await;
 ````
+
