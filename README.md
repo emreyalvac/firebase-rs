@@ -12,7 +12,7 @@ Rust based Firebase library.
 
 # Features
 
-- Server-Sent Events
+- Server-Sent Events (a.k.a stream) (https://github.com/emreyalvac/firebase-rs#read-data-as-stream)
 - Generic Payload
 
 # How to use
