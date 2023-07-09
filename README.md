@@ -8,12 +8,12 @@ Rust based Firebase library.
 
 # Full Documentation
 
-[Documentation](https://docs.rs/firebase-rs/2.0.6/firebase_rs/)
+[Documentation](https://docs.rs/firebase-rs/2.0.7/firebase_rs/)
 
-# TODO
+# Features
 
-- Listen SSE events - In progress (https://github.com/emreyalvac/firebase-rs/pull/11)
-- Epoll Integration
+- Server-Sent Events
+- Generic Payload
 
 # How to use
 
@@ -42,6 +42,7 @@ let firebase = Firebase::auth("https://myfirebase.firebaseio.com", "AUTH_KEY").u
 ````rust
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID").at(...);
 ````
+
 ---
 
 ### Read Data as Stream
@@ -52,9 +53,9 @@ let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("u
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").at("users").unwrap();
 let stream = firebase.with_realtime_events().unwrap();
 stream
-.listen(|event_type, data| {
-println!("Type: {:?} Data: {:?}", event_type, data);
-}, |err| println!("{:?}", err), false).await;
+.listen( | event_type, data| {
+println ! ("Type: {:?} Data: {:?}", event_type, data);
+}, | err| println!("{:?}", err), false).await;
 ````
 
 ### Read Data
