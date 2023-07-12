@@ -1,9 +1,5 @@
-use std::fmt::Debug;
 use eventsource_client::*;
-use futures_util::TryStreamExt;
-use serde::de::DeserializeOwned;
-use serde::Serialize;
-use crate::ServerEventError;
+use futures_util::StreamExt;
 
 pub struct ServerEvents {
     client: ClientBuilder,
@@ -14,41 +10,55 @@ impl ServerEvents {
         let mut client = ClientBuilder::for_url(url);
 
         match client {
-            Ok(stream_connection) => {
-                Some(ServerEvents { client: stream_connection })
-            }
-            Err(_) => {
-                None
-            }
+            Ok(stream_connection) => Some(ServerEvents {
+                client: stream_connection,
+            }),
+            Err(_) => None,
         }
     }
 
-    pub async fn listen(self, stream_event: fn(String, Option<String>), stream_err: fn(Error), keep_alive_friendly: bool) {
-        let mut stream =
+    pub async fn listen(
+        self,
+        stream_event: fn(String, Option<String>),
+        stream_err: fn(Error),
+        keep_alive_friendly: bool,
+    ) {
+        self.stream(keep_alive_friendly)
+            .for_each(|event| {
+                match event {
+                    Ok((event_type, maybe_data)) => stream_event(event_type, maybe_data),
+                    Err(x) => stream_err(x),
+                }
+                futures_util::future::ready(())
+            })
+            .await
+    }
+
+    pub fn stream(
+        self,
+        keep_alive_friendly: bool,
+    ) -> std::pin::Pin<Box<dyn futures_util::Stream<Item = Result<(String, Option<String>)>>>> {
+        return Box::pin(
             self.client
                 .build()
                 .stream()
-                .map_ok(|event| {
+                .filter_map(move |event| async move {
                     match event {
-                        SSE::Event(ev) => {
+                        Ok(SSE::Event(ev)) => {
                             if ev.event_type == "keep-alive" && !keep_alive_friendly {
-                                return;
+                                return None;
                             }
 
                             if ev.data == "null" {
-                                stream_event(ev.event_type, None);
-                                return;
+                                return Some(Ok((ev.event_type, None)));
                             }
 
-                            stream_event(ev.event_type, Some(ev.data));
+                            return Some(Ok((ev.event_type, Some(ev.data))));
                         }
-                        SSE::Comment(_) => {}
+                        Ok(SSE::Comment(_)) => return None,
+                        Err(x) => Some(Err(x)),
                     }
-                })
-                .map_err(|err| {
-                    stream_err(err)
-                });
-
-        while let Ok(Some(_)) = stream.try_next().await {}
+                }),
+        );
     }
 }
