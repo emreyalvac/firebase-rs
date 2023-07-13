@@ -23,7 +23,7 @@ pub struct Firebase {
 }
 
 impl Firebase {
-    /// ```
+    /// ```rust
     /// use firebase_rs::Firebase;
     ///
     /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
@@ -38,14 +38,13 @@ impl Firebase {
         }
     }
 
-    /// ```
-    /// const URI = "...";
-    /// const AUTH_KEY = "...";
+    /// ```rust
+    /// const URI: &str = "...";
+    /// const AUTH_KEY: &str = "...";
     ///
     /// use firebase_rs::Firebase;
     ///
-    /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
-    /// let parsed = firebase.auth(URI, AUTH_KEY);
+    /// let firebase = Firebase::auth("https://myfirebase.firebaseio.com", AUTH_KEY).unwrap();
     /// ```
     pub fn auth(uri: &str, auth_key: &str) -> UrlParseResult<Self>
         where
@@ -80,14 +79,16 @@ impl Firebase {
     /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
     /// let stream = firebase.with_realtime_events().unwrap();
     /// stream.listen(|event_type, data| {
-    ///                     println!(event_type, data);
-    ///                 }, |err| println!(err), false).await;
+    ///                     println!("{:?} {:?}" ,event_type, data);
+    ///                 }, |err| println!("{:?}" ,err), false).await;
     /// # }
     /// ```
     ///
     /// To use streaming interface for async code, pair with `.stream()`:
     /// ```rust
     /// use firebase_rs::Firebase;
+    /// use futures_util::StreamExt;
+    ///
     /// # async fn run() {
     /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
     /// let stream = firebase.with_realtime_events()
@@ -95,8 +96,8 @@ impl Firebase {
     ///              .stream(true);
     /// stream.for_each(|event| {
     ///           match event {
-    ///               Ok((event_type, maybe_data)) => stream_event(event_type, maybe_data),
-    ///               Err(x) => stream_err(x),
+    ///               Ok((event_type, maybe_data)) => println!("{:?} {:?}" ,event_type, maybe_data),
+    ///               Err(err) => println!("{:?}" ,err),
     ///           }
     ///           futures_util::future::ready(())
     ///        }).await;
@@ -106,7 +107,7 @@ impl Firebase {
         ServerEvents::new(self.uri.as_str())
     }
 
-    /// ```
+    /// ```rust
     /// use firebase_rs::Firebase;
     ///
     /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID").at("f69111a8a5258c15286d3d0bd4688c55");
@@ -135,7 +136,7 @@ impl Firebase {
         }
     }
 
-    /// ```
+    /// ```rust
     /// use firebase_rs::Firebase;
     ///
     /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
@@ -226,7 +227,7 @@ impl Firebase {
         }
     }
 
-    /// ```
+    /// ```rust
     /// use firebase_rs::Firebase;
     /// use serde::{Serialize, Deserialize};
     ///
@@ -249,7 +250,7 @@ impl Firebase {
         self.request(Method::POST, Some(data)).await
     }
 
-    /// ```
+    /// ```rust
     /// use std::collections::HashMap;
     /// use firebase_rs::Firebase;
     /// use serde::{Serialize, Deserialize};
@@ -268,7 +269,7 @@ impl Firebase {
         self.request(Method::GET, None).await
     }
 
-    /// ```
+    /// ```rust
     /// use std::collections::HashMap;
     /// use firebase_rs::Firebase;
     /// use serde::{Serialize, Deserialize};
@@ -295,7 +296,7 @@ impl Firebase {
         self.request_generic::<T>(Method::GET).await
     }
 
-    /// ```
+    /// ```rust
     /// use firebase_rs::Firebase;
     ///
     /// # async fn run() {
@@ -307,7 +308,7 @@ impl Firebase {
         self.request(Method::DELETE, None).await
     }
 
-    /// ```
+    /// ```rust
     /// use firebase_rs::Firebase;
     /// use serde::{Serialize, Deserialize};
     ///
