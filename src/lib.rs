@@ -73,6 +73,7 @@ impl Firebase {
         Params::new(uri)
     }
 
+    /// To use simple interface with synchronous callbacks, pair with `.listen()`:
     /// ```rust
     /// use firebase_rs::Firebase;
     /// # async fn run() {
@@ -81,6 +82,24 @@ impl Firebase {
     /// stream.listen(|event_type, data| {
     ///                     println!(event_type, data);
     ///                 }, |err| println!(err), false).await;
+    /// # }
+    /// ```
+    ///
+    /// To use streaming interface for async code, pair with `.stream()`:
+    /// ```rust
+    /// use firebase_rs::Firebase;
+    /// # async fn run() {
+    /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
+    /// let stream = firebase.with_realtime_events()
+    ///              .unwrap()
+    ///              .stream(true);
+    /// stream.for_each(|event| {
+    ///           match event {
+    ///               Ok((event_type, maybe_data)) => stream_event(event_type, maybe_data),
+    ///               Err(x) => stream_err(x),
+    ///           }
+    ///           futures_util::future::ready(())
+    ///        }).await;
     /// # }
     /// ```
     pub fn with_realtime_events(&self) -> Option<ServerEvents> {
