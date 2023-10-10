@@ -37,7 +37,8 @@ impl ServerEvents {
     pub fn stream(
         self,
         keep_alive_friendly: bool,
-    ) -> std::pin::Pin<Box<dyn futures_util::Stream<Item = Result<(String, Option<String>)>>>> {
+    ) -> std::pin::Pin<Box<dyn futures_util::Stream<Item = Result<(String, Option<String>)>> + Send>>
+    {
         return Box::pin(
             self.client
                 .build()
