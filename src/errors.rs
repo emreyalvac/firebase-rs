@@ -1,4 +1,4 @@
-use std::fmt::{Display, Formatter};
+use std::{error::Error, fmt::{Display, Formatter}};
 
 pub type UrlParseResult<T> = Result<T, UrlParseError>;
 
@@ -8,6 +8,8 @@ pub enum UrlParseError {
     NotHttps,
     Parser(url::ParseError),
 }
+
+impl Error for UrlParseError {}
 
 impl Display for UrlParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -29,6 +31,8 @@ pub enum RequestError {
     SerializeError,
     NotFoundOrNullBody,
 }
+
+impl Error for RequestError {}
 
 impl Display for RequestError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
