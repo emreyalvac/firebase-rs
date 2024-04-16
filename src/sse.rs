@@ -19,8 +19,8 @@ impl ServerEvents {
 
     pub async fn listen(
         self,
-        stream_event: fn(String, Option<String>),
-        stream_err: fn(Error),
+        stream_event: impl Fn(String, Option<String>),
+        stream_err: impl Fn(Error),
         keep_alive_friendly: bool,
     ) {
         self.stream(keep_alive_friendly)
