@@ -130,3 +130,11 @@ let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().with_
 let result = firebase.get().await;
 ````
 
+## Contributors
+
+Thanks goes to these wonderful people ✨
+
+<a href="https://github.com/emreyalvac/firebase-rs/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=emreyalvac/firebase-rs" />
+</a>
+
