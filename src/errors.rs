@@ -51,13 +51,13 @@ impl Display for RequestError {
 
 #[derive(Debug)]
 pub enum ServerEventError {
-    _ConnectionError,
+    ConnectionError,
 }
 
 impl Display for ServerEventError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            ServerEventError::_ConnectionError => write!(f, "Connection error for server events"),
+            ServerEventError::ConnectionError => write!(f, "Connection error for server events"),
         }
     }
 }
