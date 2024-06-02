@@ -54,6 +54,8 @@ pub enum ServerEventError {
     ConnectionError,
 }
 
+impl Error for ServerEventError {}
+
 impl Display for ServerEventError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
