@@ -1,4 +1,7 @@
-use std::{error::Error, fmt::{Display, Formatter}};
+use std::{
+    error::Error,
+    fmt::{Display, Formatter},
+};
 
 pub type UrlParseResult<T> = Result<T, UrlParseError>;
 
@@ -48,7 +51,7 @@ impl Display for RequestError {
 
 #[derive(Debug)]
 pub enum ServerEventError {
-    ConnectionError,
+    _ConnectionError,
 }
 
 impl Display for ServerEventError {
