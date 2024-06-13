@@ -1,4 +1,7 @@
-use std::{error::Error, fmt::{Display, Formatter}};
+use std::{
+    error::Error,
+    fmt::{Display, Formatter},
+};
 
 pub type UrlParseResult<T> = Result<T, UrlParseError>;
 
@@ -48,13 +51,13 @@ impl Display for RequestError {
 
 #[derive(Debug)]
 pub enum ServerEventError {
-    ConnectionError,
+    _ConnectionError,
 }
 
 impl Display for ServerEventError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            ServerEventError::ConnectionError => write!(f, "Connection error for server events"),
+            ServerEventError::_ConnectionError => write!(f, "Connection error for server events"),
         }
     }
 }

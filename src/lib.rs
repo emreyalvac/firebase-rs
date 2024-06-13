@@ -8,14 +8,14 @@ use serde_json::Value;
 use std::fmt::Debug;
 use url::Url;
 use utils::check_uri;
-use crate::errors::ServerEventError;
+
 use crate::sse::ServerEvents;
 
 mod constants;
 mod errors;
 mod params;
-mod utils;
 mod sse;
+mod utils;
 
 #[derive(Debug)]
 pub struct Firebase {
@@ -29,8 +29,8 @@ impl Firebase {
     /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap();
     /// ```
     pub fn new(uri: &str) -> UrlParseResult<Self>
-        where
-            Self: Sized,
+    where
+        Self: Sized,
     {
         match check_uri(&uri) {
             Ok(uri) => Ok(Self { uri }),
@@ -47,8 +47,8 @@ impl Firebase {
     /// let firebase = Firebase::auth("https://myfirebase.firebaseio.com", AUTH_KEY).unwrap();
     /// ```
     pub fn auth(uri: &str, auth_key: &str) -> UrlParseResult<Self>
-        where
-            Self: Sized,
+    where
+        Self: Sized,
     {
         match check_uri(&uri) {
             Ok(mut uri) => {
@@ -131,9 +131,7 @@ impl Firebase {
 
         let mut uri = self.uri.clone();
         uri.set_path(&format!("{}.json", new_path));
-        Self {
-            uri,
-        }
+        Self { uri }
     }
 
     /// ```rust
@@ -212,8 +210,8 @@ impl Firebase {
     }
 
     async fn request_generic<T>(&self, method: Method) -> RequestResult<T>
-        where
-            T: Serialize + DeserializeOwned + Debug,
+    where
+        T: Serialize + DeserializeOwned + Debug,
     {
         let request = self.request(method, None).await;
 
@@ -243,8 +241,8 @@ impl Firebase {
     /// # }
     /// ```
     pub async fn set<T>(&self, data: &T) -> RequestResult<Response>
-        where
-            T: Serialize + DeserializeOwned + Debug,
+    where
+        T: Serialize + DeserializeOwned + Debug,
     {
         let data = serde_json::to_value(&data).unwrap();
         self.request(Method::POST, Some(data)).await
@@ -290,8 +288,8 @@ impl Firebase {
     /// # }
     /// ```
     pub async fn get<T>(&self) -> RequestResult<T>
-        where
-            T: Serialize + DeserializeOwned + Debug,
+    where
+        T: Serialize + DeserializeOwned + Debug,
     {
         self.request_generic::<T>(Method::GET).await
     }
@@ -324,8 +322,8 @@ impl Firebase {
     /// # }
     /// ```
     pub async fn update<T>(&self, data: &T) -> RequestResult<Response>
-        where
-            T: DeserializeOwned + Serialize + Debug,
+    where
+        T: DeserializeOwned + Serialize + Debug,
     {
         let value = serde_json::to_value(&data).unwrap();
         self.request(Method::PATCH, Some(value)).await

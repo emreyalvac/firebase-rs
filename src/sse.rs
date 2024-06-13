@@ -7,7 +7,7 @@ pub struct ServerEvents {
 
 impl ServerEvents {
     pub fn new(url: &str) -> Option<Self> {
-        let mut client = ClientBuilder::for_url(url);
+        let client = ClientBuilder::for_url(url);
 
         match client {
             Ok(stream_connection) => Some(ServerEvents {
