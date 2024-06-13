@@ -1,5 +1,5 @@
 use constants::{Method, Response, AUTH};
-use errors::{RequestError, RequestResult, UrlParseError, UrlParseResult};
+use errors::{RequestResult, UrlParseResult};
 use params::Params;
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
@@ -10,6 +10,8 @@ use url::Url;
 use utils::check_uri;
 
 use crate::sse::ServerEvents;
+
+pub use errors::{RequestError, ServerEventError, UrlParseError};
 
 mod constants;
 mod errors;
