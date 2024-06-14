@@ -8,7 +8,7 @@ Rust based Firebase library.
 
 # Full Documentation
 
-[Documentation](https://docs.rs/firebase-rs/2.1.1/firebase_rs/)
+[Documentation](https://docs.rs/firebase-rs/2.1.2/firebase_rs/)
 
 # Features
 
