@@ -9,12 +9,13 @@ pub const SHALLOW: &str = "shallow";
 pub const FORMAT: &str = "format";
 pub const EXPORT: &str = "export";
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Method {
     GET,
     POST,
     DELETE,
     PATCH,
+    PUT,
 }
 
 #[derive(Debug)]

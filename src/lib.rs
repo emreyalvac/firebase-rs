@@ -115,25 +115,34 @@ impl Firebase {
     /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID").at("f69111a8a5258c15286d3d0bd4688c55");
     /// ```
     pub fn at(&self, path: &str) -> Self {
-        let mut new_path = String::default();
+        let uri = self.build_uri(path);
 
-        let paths = self.uri.path_segments().map(|p| p.collect::<Vec<_>>());
-        for mut path in paths.unwrap() {
-            if path.find(".json").is_some() {
-                path = path.trim_end_matches(".json");
+        Firebase { uri }
+    }
+
+    fn build_uri(&self, path: &str) -> Url {
+        let mut new_path = String::new();
+
+        if let Some(segments) = self.uri.path_segments() {
+            for segment in segments {
+                let clean_segment = segment.trim_end_matches(".json");
+                new_path.push_str(clean_segment);
+                new_path.push('/');
             }
-            new_path += format!("{}/", path).as_str();
         }
 
-        new_path += path;
+        new_path.push_str(path);
 
-        if new_path.find(".json").is_some() {
-            new_path = new_path.trim_end_matches(".json").to_string();
-        }
+        let final_path = if new_path.ends_with(".json") {
+            new_path.trim_end_matches(".json").to_string()
+        } else {
+            new_path
+        };
 
         let mut uri = self.uri.clone();
-        uri.set_path(&format!("{}.json", new_path));
-        Self { uri }
+        uri.set_path(&format!("{}.json", final_path));
+
+        uri
     }
 
     /// ```rust
@@ -148,67 +157,38 @@ impl Firebase {
 
     async fn request(&self, method: Method, data: Option<Value>) -> RequestResult<Response> {
         let client = reqwest::Client::new();
-
-        return match method {
-            Method::GET => {
-                let request = client.get(self.uri.to_string()).send().await;
-                match request {
-                    Ok(response) => {
-                        if response.status() == StatusCode::from_u16(200).unwrap() {
-                            return match response.text().await {
-                                Ok(data) => {
-                                    if data.as_str() == "null" {
-                                        return Err(RequestError::NotFoundOrNullBody);
-                                    }
-                                    return Ok(Response { data });
-                                }
-                                Err(_) => Err(RequestError::NotJSON),
-                            };
-                        } else {
-                            Err(RequestError::NetworkError)
-                        }
-                    }
-                    Err(_) => return Err(RequestError::NetworkError),
-                }
-            }
-            Method::POST => {
-                if !data.is_some() {
+        let request = match method {
+            Method::GET => client.get(self.uri.to_string()).send().await,
+            Method::PUT | Method::PATCH | Method::POST => {
+                if data.is_none() {
                     return Err(RequestError::SerializeError);
                 }
-
-                let request = client.post(self.uri.to_string()).json(&data).send().await;
-                match request {
-                    Ok(response) => {
-                        let data = response.text().await.unwrap();
-                        Ok(Response { data })
-                    }
-                    Err(_) => Err(RequestError::NetworkError),
-                }
+                let builder = if method == Method::PUT {
+                    client.put(self.uri.to_string())
+                } else if method == Method::POST {
+                    client.post(self.uri.to_string())
+                } else {
+                    client.patch(self.uri.to_string())
+                };
+                builder.json(&data).send().await
             }
-            Method::PATCH => {
-                if !data.is_some() {
-                    return Err(RequestError::SerializeError);
-                }
-
-                let request = client.patch(self.uri.to_string()).json(&data).send().await;
-                match request {
-                    Ok(response) => {
-                        let data = response.text().await.unwrap();
-                        Ok(Response { data })
-                    }
-                    Err(_) => Err(RequestError::NetworkError),
-                }
-            }
-            Method::DELETE => {
-                let request = client.delete(self.uri.to_string()).send().await;
-                match request {
-                    Ok(_) => Ok(Response {
-                        data: String::default(),
-                    }),
-                    Err(_) => Err(RequestError::NetworkError),
-                }
-            }
+            Method::DELETE => client.delete(self.uri.to_string()).send().await,
         };
+
+        match request {
+            Ok(response) => match response.status() {
+                StatusCode::OK => {
+                    let response_text = response.text().await.unwrap_or_default();
+                    if response_text == "null" {
+                        Err(RequestError::NotFoundOrNullBody)
+                    } else {
+                        Ok(Response { data: response_text })
+                    }
+                }
+                _ => Err(RequestError::NetworkError),
+            },
+            Err(_) => Err(RequestError::NetworkError),
+        }
     }
 
     async fn request_generic<T>(&self, method: Method) -> RequestResult<T>
@@ -248,6 +228,31 @@ impl Firebase {
     {
         let data = serde_json::to_value(&data).unwrap();
         self.request(Method::POST, Some(data)).await
+    }
+
+    /// ```rust
+    /// use firebase_rs::Firebase;
+    /// use serde::{Serialize, Deserialize};
+    ///
+    /// #[derive(Serialize, Deserialize, Debug)]
+    /// struct User {
+    ///    name: String
+    /// }
+    ///
+    /// # async fn run() {
+    /// let user = User { name: String::default() };
+    /// let mut firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
+    /// let users = firebase.set_with_key("myKey", &user).await;
+    /// # }
+    /// ```
+    pub async fn set_with_key<T>(&mut self, key: &str, data: &T) -> RequestResult<Response>
+    where
+        T: Serialize + DeserializeOwned + Debug,
+    {
+        self.uri = self.build_uri(key);
+        let data = serde_json::to_value(&data).unwrap();
+
+        self.request(Method::PUT, Some(data)).await
     }
 
     /// ```rust
