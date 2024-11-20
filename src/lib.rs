@@ -217,7 +217,7 @@ impl Firebase {
     /// }
     ///
     /// # async fn run() {
-    /// let user = User { name: String::from("name") };
+    /// let user = User { name: String::default() };
     /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
     /// let users = firebase.set(&user).await;
     /// # }
@@ -240,7 +240,7 @@ impl Firebase {
     /// }
     ///
     /// # async fn run() {
-    /// let user = User { name: String::from("name") };
+    /// let user = User { name: String::default() };
     /// let mut firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
     /// let users = firebase.set_with_key("myKey", &user).await;
     /// # }
