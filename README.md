@@ -8,7 +8,7 @@ Rust based Firebase library.
 
 # Full Documentation
 
-[Documentation](https://docs.rs/firebase-rs/2.1.2/firebase_rs/)
+[Documentation](https://docs.rs/firebase-rs/2.2.0/firebase_rs/)
 
 # Features
 
@@ -76,7 +76,7 @@ struct User {
 }
 
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
-let user = firebase.get::<HashMap<String, User> > ().await;
+let user = firebase.get::<HashMap<String, User>> ().await;
 ````
 
 #### Read data with generic type (Single record)
@@ -93,6 +93,29 @@ let user = firebase.get::<User>().await;
 
 ---
 
+### Set Data with Custom Key
+
+````rust
+#[derive(Serialize, Deserialize, Debug)]
+struct User {
+    name: String
+}
+
+let user = User { name: String::default () };
+let mut firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
+firebase.set_with_key("myKey", &user).await;
+````
+_Output_
+```json
+{
+  "users": {
+    "myKey": {
+      "name": ""
+    }
+  }
+}
+```
+
 ### Set Data
 
 ````rust
@@ -103,8 +126,18 @@ struct User {
 
 let user = User { name: String::default () };
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
-firebase.set( & user).await;
+firebase.set(&user).await;
 ````
+_Output_
+```json
+{
+  "users": {
+    "-OC9mYIUIdY3JygkmsFQ": {
+      "name": ""
+    }
+  }
+}
+```
 
 ---
 
@@ -118,7 +151,7 @@ struct User {
 
 let user = User { name: String::default () };
 let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
-firebase.update( & user).await;
+firebase.update( &user).await;
 ````
 
 ---
