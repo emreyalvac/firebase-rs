@@ -31,8 +31,6 @@ impl Params {
         T: ToString,
     {
         self.params.insert(key.to_string(), value.to_string());
-        self.set_params();
-
         self
     }
 
@@ -68,7 +66,8 @@ impl Params {
         self.add_param(FORMAT, EXPORT)
     }
 
-    pub fn finish(&self) -> Firebase {
+    pub fn finish(&mut self) -> Firebase {
+        self.set_params();
         Firebase::new(self.uri.as_str()).unwrap()
     }
 }
