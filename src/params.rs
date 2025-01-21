@@ -9,20 +9,12 @@ use url::Url;
 #[derive(Debug)]
 pub struct Params {
     pub uri: Url,
-    pub params: HashMap<String, String>,
 }
 
 impl Params {
     pub fn new(uri: Url) -> Self {
         Self {
             uri,
-            params: Default::default(),
-        }
-    }
-
-    pub fn set_params(&mut self) -> () {
-        for (k, v) in self.params.iter().sorted() {
-            self.uri.query_pairs_mut().append_pair(k, v);
         }
     }
 
@@ -30,7 +22,7 @@ impl Params {
     where
         T: ToString,
     {
-        self.params.insert(key.to_string(), value.to_string());
+        self.uri.query_pairs_mut().append_pair(key, value.to_string().as_str());
         self
     }
 
@@ -66,8 +58,7 @@ impl Params {
         self.add_param(FORMAT, EXPORT)
     }
 
-    pub fn finish(&mut self) -> Firebase {
-        self.set_params();
+    pub fn finish(&self) -> Firebase {
         Firebase::new(self.uri.as_str()).unwrap()
     }
 }
@@ -85,10 +76,10 @@ mod tests {
         params.insert("param_2".to_owned(), "value_2".to_owned());
         let mut param = Params {
             uri: Url::parse("https://github.com/emreyalvac").unwrap(),
-            params,
         };
-        param.set_params();
-
+        for (key, value) in params.iter() {
+            param.add_param(key, value);
+        }
         assert_eq!(
             param.uri.as_str(),
             "https://github.com/emreyalvac?param_1=value_1&param_2=value_2"
