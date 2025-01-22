@@ -58,6 +58,7 @@ impl ServerEvents {
                         }
                         Ok(SSE::Comment(_)) => return None,
                         Err(x) => Some(Err(x)),
+                        _ => return None
                     }
                 }),
         );
