@@ -230,9 +230,14 @@ impl Firebase {
         self.request(Method::POST, Some(data)).await
     }
 
-    pub async fn set_json(&self, data: serde_json::Value) -> RequestResult<Response>
+    pub async fn post_json(&self, data: serde_json::Value) -> RequestResult<Response>
     {
         self.request(Method::POST, Some(data)).await
+    }
+
+    pub async fn put_json(&self, data: serde_json::Value) -> RequestResult<Response>
+    {
+        self.request(Method::PUT, Some(data)).await
     }
 
     /// ```rust
