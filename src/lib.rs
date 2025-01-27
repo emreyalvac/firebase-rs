@@ -209,7 +209,7 @@ impl Firebase {
         }
     }
 
-    pub async fn increment_atomically(&self, value: i64, max_limit: i64, etag: Option<String>) -> RequestResult<Response> {
+    pub async fn update_atomically_by(&self, value: i64, limit_max: Option<i64>, etag: Option<String>) -> RequestResult<Response> {
         Box::pin(async move {
             if let Some(etag) = etag {
                 let data = json!(value);
@@ -218,27 +218,37 @@ impl Firebase {
                     if response.etag.is_none() {
                         return updated_response;
                     }
-                    let new_value: i64 = serde_json::from_str(response.data.as_str()).unwrap();
-                    if new_value >= max_limit {
-                        return Err(RequestError::LimitExceeded);
-                    }
-                    return self.increment_atomically(new_value + value, max_limit, response.etag.clone()).await;
+                    let next_value = match Self::check_current_before_update(value, limit_max, response.data.as_str()) {
+                        Ok(value) => value,
+                        Err(value) => return value,
+                    };
+                    return self.update_atomically_by(next_value, limit_max, response.etag.clone()).await;
                 }
                 return updated_response;
             }
             let response = self.request(Method::GET, None, true, None).await;
             match response {
                 Ok(response) => {
-                    let current_value: i64 = serde_json::from_str(response.data.as_str()).unwrap();
-                    if current_value >= max_limit {
-                        return Err(RequestError::LimitExceeded);
-                    }
-                    let new_value = current_value + value;
-                    self.increment_atomically(new_value, max_limit, response.etag).await
+                    let new_value = match Self::check_current_before_update(value, limit_max, response.data.as_str()) {
+                        Ok(value) => value,
+                        Err(value) => return value,
+                    };
+                    self.update_atomically_by(new_value, limit_max, response.etag).await
                 }
                 Err(err) => Err(err),
             }
         }).await
+    }
+
+    fn check_current_before_update(value: i64, limit_max: Option<i64>, data: &str) -> Result<i64, RequestResult<Response>> {
+        let new_value: i64 = serde_json::from_str(data).unwrap();
+        if let Some(limit) = limit_max {
+            if (value > 0 && new_value >= limit) || (value < 0 && new_value <= limit) {
+                return Err(Err(RequestError::LimitExceeded));
+            }
+        }
+        let next_value = new_value + value;
+        Ok(next_value)
     }
 
     async fn request_generic<T>(&self, method: Method) -> RequestResult<T>
