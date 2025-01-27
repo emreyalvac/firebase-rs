@@ -248,7 +248,7 @@ impl Firebase {
             }
         }
         if let Some(limit) = limit_min {
-            if (value > 0 && new_value <= limit) || (value < 0 && new_value >= limit) {
+            if new_value == limit {
                 return Err(Err(RequestError::LimitExceeded));
             }
         }
