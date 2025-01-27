@@ -243,7 +243,7 @@ impl Firebase {
     fn check_current_before_update(value: i64, limit_min: Option<i64>, limit_max: Option<i64>, data: &str) -> Result<i64, RequestResult<Response>> {
         let new_value: i64 = serde_json::from_str(data).unwrap();
         if let Some(limit) = limit_max {
-            if (value > 0 && new_value >= limit) || (value < 0 && new_value <= limit) {
+            if value > 0 && new_value >= limit {
                 return Err(Err(RequestError::LimitExceeded));
             }
         }
