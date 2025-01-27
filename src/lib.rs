@@ -4,7 +4,7 @@ use params::Params;
 use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use serde_json::Value;
+use serde_json::{json, Value};
 use std::fmt::Debug;
 use url::Url;
 use utils::check_uri;
@@ -155,10 +155,10 @@ impl Firebase {
         self.uri.to_string()
     }
 
-    async fn request(&self, method: Method, data: Option<Value>) -> RequestResult<Response> {
+    async fn request(&self, method: Method, data: Option<Value>, include_etag: bool, etag: Option<&str>) -> RequestResult<Response> {
         let client = reqwest::Client::new();
-        let request = match method {
-            Method::GET => client.get(self.uri.to_string()).send().await,
+        let mut request_builder = match method {
+            Method::GET => client.get(self.uri.to_string()),
             Method::PUT | Method::PATCH | Method::POST => {
                 if data.is_none() {
                     return Err(RequestError::SerializeError);
@@ -170,32 +170,82 @@ impl Firebase {
                 } else {
                     client.patch(self.uri.to_string())
                 };
-                builder.json(&data).send().await
+                builder.json(&data)
             }
-            Method::DELETE => client.delete(self.uri.to_string()).send().await,
+            Method::DELETE => client.delete(self.uri.to_string()),
         };
 
+        if include_etag {
+            request_builder = request_builder.header("X-Firebase-ETag", "true");
+        }
+
+        if let Some(etag_value) = etag {
+            request_builder = request_builder.header("if-match", etag_value);
+        }
+
+        let request = request_builder.send().await;
+
         match request {
-            Ok(response) => match response.status() {
-                StatusCode::OK => {
-                    let response_text = response.text().await.unwrap_or_default();
-                    if response_text == "null" {
-                        Err(RequestError::NotFoundOrNullBody)
-                    } else {
-                        Ok(Response { data: response_text })
+            Ok(response) => {
+                let etag = response.headers().get("ETag").map(|v| v.to_str().unwrap().to_string());
+                match response.status() {
+                    StatusCode::OK => {
+                        let response_text = response.text().await.unwrap_or_default();
+                        if response_text == "null" {
+                            Err(RequestError::NotFoundOrNullBody)
+                        } else {
+                            Ok(Response { etag, data: response_text })
+                        }
                     }
+                    StatusCode::PRECONDITION_FAILED => {
+                        // create a new response with the etag value and with a new response body
+                        let response_text = response.text().await.unwrap_or_default();
+                        Ok(Response {etag, data: response_text })
+                    }
+                    _ => Err(RequestError::NetworkError),
                 }
-                _ => Err(RequestError::NetworkError),
-            },
+            }
             Err(_) => Err(RequestError::NetworkError),
         }
+    }
+
+    pub async fn increment_atomically(&self, value: i64, max_limit: i64, etag: Option<String>) -> RequestResult<Response> {
+        Box::pin(async move {
+            if let Some(etag) = etag {
+                let data = json!(value);
+                let updated_response = self.request(Method::PUT, Some(data), false, Some(etag).as_deref()).await;
+                if let Ok(response) = &updated_response {
+                    if response.etag.is_none() {
+                        return updated_response;
+                    }
+                    let new_value: i64 = serde_json::from_str(response.data.as_str()).unwrap();
+                    if new_value >= max_limit {
+                        return Err(RequestError::LimitExceeded);
+                    }
+                    return self.increment_atomically(new_value + value, max_limit, response.etag.clone()).await;
+                }
+                return updated_response;
+            }
+            let response = self.request(Method::GET, None, true, None).await;
+            match response {
+                Ok(response) => {
+                    let current_value: i64 = serde_json::from_str(response.data.as_str()).unwrap();
+                    if current_value >= max_limit {
+                        return Err(RequestError::LimitExceeded);
+                    }
+                    let new_value = current_value + value;
+                    self.increment_atomically(new_value, max_limit, response.etag).await
+                }
+                Err(err) => Err(err),
+            }
+        }).await
     }
 
     async fn request_generic<T>(&self, method: Method) -> RequestResult<T>
     where
         T: Serialize + DeserializeOwned + Debug,
     {
-        let request = self.request(method, None).await;
+        let request = self.request(method, None, false, None).await;
 
         match request {
             Ok(response) => {
@@ -227,17 +277,17 @@ impl Firebase {
         T: Serialize + DeserializeOwned + Debug,
     {
         let data = serde_json::to_value(&data).unwrap();
-        self.request(Method::POST, Some(data)).await
+        self.request(Method::POST, Some(data), false, None).await
     }
 
     pub async fn post_json(&self, data: serde_json::Value) -> RequestResult<Response>
     {
-        self.request(Method::POST, Some(data)).await
+        self.request(Method::POST, Some(data), false, None).await
     }
 
     pub async fn put_json(&self, data: serde_json::Value) -> RequestResult<Response>
     {
-        self.request(Method::PUT, Some(data)).await
+        self.request(Method::PUT, Some(data), false, None).await
     }
 
     /// ```rust
@@ -262,7 +312,7 @@ impl Firebase {
         self.uri = self.build_uri(key);
         let data = serde_json::to_value(&data).unwrap();
 
-        self.request(Method::PUT, Some(data)).await
+        self.request(Method::PUT, Some(data), false, None).await
     }
 
     /// ```rust
@@ -281,7 +331,7 @@ impl Firebase {
     /// # }
     /// ```
     pub async fn get_as_string(&self) -> RequestResult<Response> {
-        self.request(Method::GET, None).await
+        self.request(Method::GET, None, false, None).await
     }
 
     /// ```rust
@@ -320,7 +370,7 @@ impl Firebase {
     /// # }
     /// ```
     pub async fn delete(&self) -> RequestResult<Response> {
-        self.request(Method::DELETE, None).await
+        self.request(Method::DELETE, None, false, None).await
     }
 
     /// ```rust
@@ -343,7 +393,7 @@ impl Firebase {
         T: DeserializeOwned + Serialize + Debug,
     {
         let value = serde_json::to_value(&data).unwrap();
-        self.request(Method::PATCH, Some(value)).await
+        self.request(Method::PATCH, Some(value), false, None).await
     }
 }
 

@@ -1,3 +1,5 @@
+use serde::Serialize;
+
 pub const AUTH: &str = "auth";
 pub const ORDER_BY: &str = "orderBy";
 pub const LIMIT_TO_FIRST: &str = "limitToFirst";
@@ -20,12 +22,14 @@ pub enum Method {
 
 #[derive(Debug)]
 pub struct Response {
+    pub etag: Option<String>,
     pub data: String,
 }
 
 impl Response {
     pub fn new() -> Self {
         Self {
+            etag: None,
             data: String::default(),
         }
     }
