@@ -345,8 +345,8 @@ impl Firebase {
     /// let users = firebase.get::<HashMap<String, User>>().await;
     /// # }
     /// ```
-    pub async fn get_as_string(&self) -> RequestResult<Response> {
-        self.request(Method::GET, None, false, None).await
+    pub async fn get_as_string(&self, include_etag: Option<bool>, etag: Option<&str>) -> RequestResult<Response> {
+        self.request(Method::GET, None, include_etag.unwrap_or(false), etag).await
     }
 
     /// ```rust
@@ -403,12 +403,12 @@ impl Firebase {
     /// let users = firebase.update(&user).await;
     /// # }
     /// ```
-    pub async fn update<T>(&self, data: &T) -> RequestResult<Response>
+    pub async fn update<T>(&self, data: &T, include_etag: Option<bool>, etag: Option<&str>) -> RequestResult<Response>
     where
         T: DeserializeOwned + Serialize + Debug,
     {
         let value = serde_json::to_value(&data).unwrap();
-        self.request(Method::PATCH, Some(value), false, None).await
+        self.request(Method::PATCH, Some(value), include_etag.unwrap_or(false), etag).await
     }
 }
 
