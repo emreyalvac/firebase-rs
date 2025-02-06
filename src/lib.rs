@@ -317,17 +317,17 @@ impl Firebase {
     /// # async fn run() {
     /// let user = User { name: String::default() };
     /// let mut firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users");
-    /// let users = firebase.set_with_key("myKey", &user).await;
+    /// let users = firebase.set_with_key("myKey", &user, None, None).await;
     /// # }
     /// ```
-    pub async fn set_with_key<T>(&mut self, key: &str, data: &T) -> RequestResult<Response>
+    pub async fn set_with_key<T>(&mut self, key: &str, data: &T, include_etag: Option<bool>, etag: Option<&str>) -> RequestResult<Response>
     where
         T: Serialize + DeserializeOwned + Debug,
     {
         self.uri = self.build_uri(key);
         let data = serde_json::to_value(&data).unwrap();
 
-        self.request(Method::PUT, Some(data), false, None).await
+        self.request(Method::PUT, Some(data), include_etag.unwrap_or(false), etag).await
     }
 
     /// ```rust
@@ -400,7 +400,7 @@ impl Firebase {
     /// # async fn run() {
     /// let user = User { name: String::default() };
     /// let firebase = Firebase::new("https://myfirebase.firebaseio.com").unwrap().at("users").at("USER_ID");
-    /// let users = firebase.update(&user).await;
+    /// let users = firebase.update(&user, None, None).await;
     /// # }
     /// ```
     pub async fn update<T>(&self, data: &T, include_etag: Option<bool>, etag: Option<&str>) -> RequestResult<Response>
