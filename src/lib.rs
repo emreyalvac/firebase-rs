@@ -255,19 +255,19 @@ impl Firebase {
         Ok(next_value)
     }
 
-    async fn request_generic<T>(&self, method: Method) -> RequestResult<T>
+    async fn request_generic<T>(&self, method: Method) -> RequestResult<Option<T>>
     where
-        T: Serialize + DeserializeOwned + Debug + Default,
+        T: Serialize + DeserializeOwned + Debug,
     {
         let request = self.request(method, None, false, None).await;
 
         match request {
             Ok(response) => {
                 if response.data.is_empty() {
-                    return Ok(T::default());
+                    return Ok(None);
                 }
                 let data: T = serde_json::from_str(response.data.as_str()).unwrap();
-                Ok(data)
+                Ok(Some(data))
             }
             Err(err) => Err(err),
         }
@@ -370,9 +370,9 @@ impl Firebase {
     /// let user = firebase.get::<HashMap<String, User>>().await;
     /// # }
     /// ```
-    pub async fn get<T>(&self) -> RequestResult<T>
+    pub async fn get<T>(&self) -> RequestResult<Option<T>>
     where
-        T: Serialize + DeserializeOwned + Debug + Default,
+        T: Serialize + DeserializeOwned + Debug,
     {
         self.request_generic::<T>(Method::GET).await
     }
