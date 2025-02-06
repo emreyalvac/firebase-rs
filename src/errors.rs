@@ -32,7 +32,6 @@ pub enum RequestError {
     NoUTF8,
     NetworkError,
     SerializeError,
-    NotFoundOrNullBody,
     LimitExceeded,
 }
 
@@ -45,7 +44,6 @@ impl Display for RequestError {
             RequestError::NoUTF8 => write!(f, "Utf8 error"),
             RequestError::NetworkError => write!(f, "Network error"),
             RequestError::SerializeError => write!(f, "Serialize error"),
-            RequestError::NotFoundOrNullBody => write!(f, "Body is null or record is not found"),
             RequestError::LimitExceeded => write!(f, "Limit exceeded"),
         }
     }

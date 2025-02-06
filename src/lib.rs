@@ -190,12 +190,11 @@ impl Firebase {
                 let etag = response.headers().get("ETag").map(|v| v.to_str().unwrap().to_string());
                 match response.status() {
                     StatusCode::OK => {
-                        let response_text = response.text().await.unwrap_or_default();
+                        let mut response_text = response.text().await.unwrap_or_default();
                         if response_text == "null" {
-                            Err(RequestError::NotFoundOrNullBody)
-                        } else {
-                            Ok(Response { etag, data: response_text })
+                            response_text = String::default();
                         }
+                        Ok(Response { etag, data: response_text })
                     }
                     StatusCode::PRECONDITION_FAILED => {
                         // create a new response with the etag value and with a new response body
