@@ -257,14 +257,16 @@ impl Firebase {
 
     async fn request_generic<T>(&self, method: Method) -> RequestResult<T>
     where
-        T: Serialize + DeserializeOwned + Debug,
+        T: Serialize + DeserializeOwned + Debug + Default,
     {
         let request = self.request(method, None, false, None).await;
 
         match request {
             Ok(response) => {
+                if response.data.is_empty() {
+                    return Ok(T::default());
+                }
                 let data: T = serde_json::from_str(response.data.as_str()).unwrap();
-
                 Ok(data)
             }
             Err(err) => Err(err),
@@ -370,7 +372,7 @@ impl Firebase {
     /// ```
     pub async fn get<T>(&self) -> RequestResult<T>
     where
-        T: Serialize + DeserializeOwned + Debug,
+        T: Serialize + DeserializeOwned + Debug + Default,
     {
         self.request_generic::<T>(Method::GET).await
     }
