@@ -39,7 +39,7 @@ impl ServerEvents {
         keep_alive_friendly: bool,
     ) -> std::pin::Pin<Box<dyn futures_util::Stream<Item = Result<(String, Option<String>)>> + Send>>
     {
-        return Box::pin(
+        Box::pin(
             self.client
                 .build()
                 .stream()
@@ -58,8 +58,9 @@ impl ServerEvents {
                         }
                         Ok(SSE::Comment(_)) => return None,
                         Err(x) => Some(Err(x)),
+                        _ => Some(Err(Error::StreamClosed)),
                     }
                 }),
-        );
+        )
     }
 }

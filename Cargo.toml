@@ -1,11 +1,11 @@
 [package]
 name = "firebase-rs"
 edition = "2021"
-version = "2.2.0"
+version = "2.2.1"
 description = "Rust based Firebase library"
 readme = "README.md"
 repository = "https://github.com/emreyalvac/firebase-rs"
-documentation = "https://docs.rs/firebase-rs/2.2.0/firebase_rs/"
+documentation = "https://docs.rs/firebase-rs/2.2.1/firebase_rs/"
 license = "MIT"
 authors = ["Emre YALVAÇ <emre.yalvac@outlook.com>"]
 exclude = ["examples/*", "tests/*"]
@@ -13,12 +13,12 @@ keywords = ["firebase", "rest", "api", "web", "database"]
 
 [dependencies]
 url = "2.2.2"
-reqwest = { version = "0.11.18", features = ["json"] }
-serde_json = "1.0.100"
-serde = { version = "1.0.169", features = ["derive"] }
-itertools = "0.10.5"
-eventsource-client = "0.10.2"
-futures-util = "0.3.28"
+reqwest = { version = "0.12.12", features = ["json"] }
+serde_json = "1.0.137"
+serde = { version = "1.0.217", features = ["derive"] }
+itertools = "0.14.0"
+eventsource-client = "0.13.0"
+futures-util = "0.3.31"
 
 [dev-dependencies]
-tokio = { version = "1.29.1", features = ["rt", "macros", "rt-multi-thread"] }
+tokio = { version = "1.43.0", features = ["rt", "macros", "rt-multi-thread"] }
