@@ -330,7 +330,7 @@ impl Firebase {
     /// ```
     pub async fn update<T>(&self, data: &T) -> RequestResult<Response>
     where
-        T: DeserializeOwned + Serialize + Debug,
+        T: Serialize + Debug,
     {
         let value = serde_json::to_value(&data).unwrap();
         self.request(Method::PATCH, Some(value)).await
