@@ -161,7 +161,7 @@ dependencies = [
 
 [[package]]
 name = "firebase-rs"
-version = "2.2.1"
+version = "2.2.2"
 dependencies = [
  "eventsource-client",
  "futures-util",
