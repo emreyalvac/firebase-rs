@@ -182,7 +182,9 @@ impl Firebase {
                     if response_text == "null" {
                         Err(RequestError::NotFoundOrNullBody)
                     } else {
-                        Ok(Response { data: response_text })
+                        Ok(Response {
+                            data: response_text,
+                        })
                     }
                 }
                 _ => Err(RequestError::NetworkError),
@@ -193,7 +195,7 @@ impl Firebase {
 
     async fn request_generic<T>(&self, method: Method) -> RequestResult<T>
     where
-        T: Serialize + DeserializeOwned + Debug,
+        T: DeserializeOwned + Debug,
     {
         let request = self.request(method, None).await;
 
@@ -224,7 +226,7 @@ impl Firebase {
     /// ```
     pub async fn set<T>(&self, data: &T) -> RequestResult<Response>
     where
-        T: Serialize + DeserializeOwned + Debug,
+        T: Serialize + Debug,
     {
         let data = serde_json::to_value(&data).unwrap();
         self.request(Method::POST, Some(data)).await
@@ -247,7 +249,7 @@ impl Firebase {
     /// ```
     pub async fn set_with_key<T>(&mut self, key: &str, data: &T) -> RequestResult<Response>
     where
-        T: Serialize + DeserializeOwned + Debug,
+        T: Serialize + Debug,
     {
         self.uri = self.build_uri(key);
         let data = serde_json::to_value(&data).unwrap();
@@ -296,7 +298,7 @@ impl Firebase {
     /// ```
     pub async fn get<T>(&self) -> RequestResult<T>
     where
-        T: Serialize + DeserializeOwned + Debug,
+        T: DeserializeOwned + Debug,
     {
         self.request_generic::<T>(Method::GET).await
     }
