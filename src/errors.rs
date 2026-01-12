@@ -33,6 +33,7 @@ pub enum RequestError {
     NetworkError,
     SerializeError,
     NotFoundOrNullBody,
+    Unauthorized,
 }
 
 impl Error for RequestError {}
@@ -45,6 +46,7 @@ impl Display for RequestError {
             RequestError::NetworkError => write!(f, "Network error"),
             RequestError::SerializeError => write!(f, "Serialize error"),
             RequestError::NotFoundOrNullBody => write!(f, "Body is null or record is not found"),
+            RequestError::Unauthorized => write!(f, "Unauthorized"),
         }
     }
 }

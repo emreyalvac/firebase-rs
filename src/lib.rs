@@ -177,16 +177,14 @@ impl Firebase {
 
         match request {
             Ok(response) => match response.status() {
-                StatusCode::OK => {
+                StatusCode::OK | StatusCode::NO_CONTENT => {
                     let response_text = response.text().await.unwrap_or_default();
-                    if response_text == "null" {
-                        Err(RequestError::NotFoundOrNullBody)
-                    } else {
-                        Ok(Response {
-                            data: response_text,
-                        })
-                    }
+                    Ok(Response {
+                        data: response_text,
+                    })
                 }
+                StatusCode::UNAUTHORIZED | StatusCode::FORBIDDEN => Err(RequestError::Unauthorized),
+                StatusCode::NOT_FOUND => Err(RequestError::NotFoundOrNullBody),
                 _ => Err(RequestError::NetworkError),
             },
             Err(_) => Err(RequestError::NetworkError),
