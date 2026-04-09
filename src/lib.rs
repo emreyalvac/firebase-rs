@@ -161,7 +161,7 @@ impl Firebase {
             Method::GET => client.get(self.uri.to_string()).send().await,
             Method::PUT | Method::PATCH | Method::POST => {
                 if data.is_none() {
-                    return Err(RequestError::SerializeError);
+                    return Err(RequestError::NotFoundOrNullBody);
                 }
                 let builder = if method == Method::PUT {
                     client.put(self.uri.to_string())
@@ -199,7 +199,17 @@ impl Firebase {
 
         match request {
             Ok(response) => {
-                let data: T = serde_json::from_str(response.data.as_str()).unwrap();
+                // Step 1: Parse raw JSON string into a generic Value.
+                // If this fails, the response wasn't valid JSON at all.
+                let value: serde_json::Value = serde_json::from_str(response.data.as_str())
+                    .map_err(|_| RequestError::NotJSON)?;
+
+                // Step 2: Convert the Value into the caller's target type.
+                // If this fails, the JSON was valid but its shape doesn't
+                // match T — serde's error message includes the problematic
+                // field / expected type so callers get actionable context.
+                let data: T = serde_json::from_value(value)
+                    .map_err(RequestError::DeserializeError)?;
 
                 Ok(data)
             }
@@ -226,7 +236,7 @@ impl Firebase {
     where
         T: Serialize + Debug,
     {
-        let data = serde_json::to_value(&data).unwrap();
+        let data = serde_json::to_value(&data).map_err(RequestError::SerializeError)?;
         self.request(Method::POST, Some(data)).await
     }
 
@@ -250,7 +260,7 @@ impl Firebase {
         T: Serialize + Debug,
     {
         self.uri = self.build_uri(key);
-        let data = serde_json::to_value(&data).unwrap();
+        let data = serde_json::to_value(&data).map_err(RequestError::SerializeError)?;
 
         self.request(Method::PUT, Some(data)).await
     }
@@ -332,7 +342,7 @@ impl Firebase {
     where
         T: Serialize + Debug,
     {
-        let value = serde_json::to_value(&data).unwrap();
+        let value = serde_json::to_value(&data).map_err(RequestError::SerializeError)?;
         self.request(Method::PATCH, Some(value)).await
     }
 }
