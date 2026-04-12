@@ -56,9 +56,8 @@ impl ServerEvents {
 
                             return Some(Ok((ev.event_type, Some(ev.data))));
                         }
-                        Ok(SSE::Comment(_)) => return None,
+                        Ok(SSE::Comment(_)) | Ok(SSE::Connected(_)) => return None,
                         Err(x) => Some(Err(x)),
-                        _ => Some(Err(Error::StreamClosed)),
                     }
                 }),
         )
