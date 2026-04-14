@@ -199,15 +199,9 @@ impl Firebase {
 
         match request {
             Ok(response) => {
-                // Step 1: Parse raw JSON string into a generic Value.
-                // If this fails, the response wasn't valid JSON at all.
                 let value: serde_json::Value = serde_json::from_str(response.data.as_str())
                     .map_err(|_| RequestError::NotJSON)?;
 
-                // Step 2: Convert the Value into the caller's target type.
-                // If this fails, the JSON was valid but its shape doesn't
-                // match T — serde's error message includes the problematic
-                // field / expected type so callers get actionable context.
                 let data: T = serde_json::from_value(value)
                     .map_err(RequestError::DeserializeError)?;
 
