@@ -161,7 +161,7 @@ impl Firebase {
             Method::GET => client.get(self.uri.to_string()).send().await,
             Method::PUT | Method::PATCH | Method::POST => {
                 if data.is_none() {
-                    return Err(RequestError::SerializeError);
+                    return Err(RequestError::NotFoundOrNullBody);
                 }
                 let builder = if method == Method::PUT {
                     client.put(self.uri.to_string())
@@ -199,7 +199,11 @@ impl Firebase {
 
         match request {
             Ok(response) => {
-                let data: T = serde_json::from_str(response.data.as_str()).unwrap();
+                let value: serde_json::Value = serde_json::from_str(response.data.as_str())
+                    .map_err(|_| RequestError::NotJSON)?;
+
+                let data: T = serde_json::from_value(value)
+                    .map_err(RequestError::DeserializeError)?;
 
                 Ok(data)
             }
@@ -226,7 +230,7 @@ impl Firebase {
     where
         T: Serialize + Debug,
     {
-        let data = serde_json::to_value(&data).unwrap();
+        let data = serde_json::to_value(&data).map_err(RequestError::SerializeError)?;
         self.request(Method::POST, Some(data)).await
     }
 
@@ -250,7 +254,7 @@ impl Firebase {
         T: Serialize + Debug,
     {
         self.uri = self.build_uri(key);
-        let data = serde_json::to_value(&data).unwrap();
+        let data = serde_json::to_value(&data).map_err(RequestError::SerializeError)?;
 
         self.request(Method::PUT, Some(data)).await
     }
@@ -332,7 +336,7 @@ impl Firebase {
     where
         T: Serialize + Debug,
     {
-        let value = serde_json::to_value(&data).unwrap();
+        let value = serde_json::to_value(&data).map_err(RequestError::SerializeError)?;
         self.request(Method::PATCH, Some(value)).await
     }
 }

@@ -6,6 +6,7 @@ use std::{
 pub type UrlParseResult<T> = Result<T, UrlParseError>;
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum UrlParseError {
     NoPath,
     NotHttps,
@@ -27,11 +28,13 @@ impl Display for UrlParseError {
 pub type RequestResult<T> = Result<T, RequestError>;
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum RequestError {
     NotJSON,
     NoUTF8,
     NetworkError,
-    SerializeError,
+    SerializeError(serde_json::Error),
+    DeserializeError(serde_json::Error),
     NotFoundOrNullBody,
     Unauthorized,
 }
@@ -44,7 +47,8 @@ impl Display for RequestError {
             RequestError::NotJSON => write!(f, "Invalid JSON"),
             RequestError::NoUTF8 => write!(f, "Utf8 error"),
             RequestError::NetworkError => write!(f, "Network error"),
-            RequestError::SerializeError => write!(f, "Serialize error"),
+            RequestError::SerializeError(e) => write!(f, "Failed to serialize request: {}", e),
+            RequestError::DeserializeError(e) => write!(f, "Failed to deserialize response: {}", e),
             RequestError::NotFoundOrNullBody => write!(f, "Body is null or record is not found"),
             RequestError::Unauthorized => write!(f, "Unauthorized"),
         }
@@ -52,6 +56,7 @@ impl Display for RequestError {
 }
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum ServerEventError {
     ConnectionError,
 }
